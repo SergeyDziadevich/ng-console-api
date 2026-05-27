@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { DeleteResult, HydratedDocument, Model } from 'mongoose';
 import { User } from '../schemas/user.schema';
@@ -18,21 +18,38 @@ export class UsersService {
     settings,
     ...createUserDto
   }: CreateUserDto): Promise<User> {
-    if (settings) {
-      const newSettings = new this.userSettingsModel(settings);
-      const saveNewSettings = await newSettings.save();
+    try {
+      if (settings) {
+        const newSettings = new this.userSettingsModel(settings);
+        const saveNewSettings = await newSettings.save();
 
-      const newUser = new this.userModel({
-        ...createUserDto,
-        settings: saveNewSettings._id,
-      });
+        const newUser = new this.userModel({
+          ...createUserDto,
+          settings: saveNewSettings._id,
+        });
 
-      return newUser.save();
+        return await newUser.save();
+      }
+
+      const newUser = new this.userModel(createUserDto);
+
+      return await newUser.save();
+    } catch (error: unknown) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        (error as { code: number }).code === 11000
+      ) {
+        const keyValue =
+          (error as { keyValue?: Record<string, unknown> }).keyValue ?? {};
+        const duplicatedField = Object.keys(keyValue)[0];
+        throw new ConflictException(
+          `A user with that ${duplicatedField ?? 'value'} already exists.`,
+        );
+      }
+      throw error;
     }
-
-    const newUser = new this.userModel(createUserDto);
-
-    return newUser.save();
   }
 
   getAllUsers(): Promise<User[]> {
