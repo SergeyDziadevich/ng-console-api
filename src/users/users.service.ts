@@ -61,7 +61,12 @@ export class UsersService {
   }
 
   updateUser(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {
-    return this.userModel.findByIdAndUpdate(id, updateUserDto, { new: true });
+    const { avatarUrl, ...rest } = updateUserDto;
+    const updateData: Partial<User> = { ...rest };
+    if (avatarUrl !== undefined) {
+      updateData.avatarUrl = avatarUrl;
+    }
+    return this.userModel.findByIdAndUpdate(id, updateData, { new: true });
   }
 
   deleteUser(id: string): Promise<DeleteResult> {
