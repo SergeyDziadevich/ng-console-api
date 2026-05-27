@@ -21,6 +21,7 @@ import { AuthGuard } from '../auth/auth.guard';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @UseGuards(AuthGuard)
   @Post()
   createUser(@Body() createUserDto: CreateUserDto) {
     return this.usersService.createUser(createUserDto);
@@ -32,6 +33,7 @@ export class UsersController {
     return this.usersService.getAllUsers();
   }
 
+  @UseGuards(AuthGuard)
   @Get(':id')
   async getUserById(@Param('id') id: string): Promise<User> {
     const isValid = mongoose.Types.ObjectId.isValid(id);
@@ -44,6 +46,7 @@ export class UsersController {
     return findUser;
   }
 
+  @UseGuards(AuthGuard)
   @Patch(':id')
   async updateUser(
     @Param('id') id: string,
@@ -59,6 +62,7 @@ export class UsersController {
     return updateUser;
   }
 
+  @UseGuards(AuthGuard)
   @Delete(':id')
   async deleteUser(@Param('id') id: string) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
