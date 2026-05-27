@@ -1,16 +1,20 @@
-import { IsString } from 'class-validator';
-import { Optional } from '@nestjs/common';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { Role } from '../enums/role.enum';
 
 export class UpdateUserDto {
-  @Optional()
-  displayName: string;
-
-  @Optional()
-  avatarUrl: string;
-
+  @IsOptional()
   @IsString()
-  role: string;
+  displayName?: string;
 
+  @IsOptional()
   @IsString()
-  username: string;
+  avatarUrl?: string;
+
+  @IsOptional()
+  @IsEnum(Role)
+  role?: Role;
+
+  @IsOptional()
+  @IsString()
+  username?: string;
 }
