@@ -1,6 +1,7 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { DeleteResult, HydratedDocument, Model } from 'mongoose';
+import * as bcrypt from 'bcrypt';
 import { User } from '../schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -19,19 +20,25 @@ export class UsersService {
     ...createUserDto
   }: CreateUserDto): Promise<User> {
     try {
+      const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+      const userDataWithHashedPassword = {
+        ...createUserDto,
+        password: hashedPassword,
+      };
+
       if (settings) {
         const newSettings = new this.userSettingsModel(settings);
         const saveNewSettings = await newSettings.save();
 
         const newUser = new this.userModel({
-          ...createUserDto,
+          ...userDataWithHashedPassword,
           settings: saveNewSettings._id,
         });
 
         return await newUser.save();
       }
 
-      const newUser = new this.userModel(createUserDto);
+      const newUser = new this.userModel(userDataWithHashedPassword);
 
       return await newUser.save();
     } catch (error: unknown) {
