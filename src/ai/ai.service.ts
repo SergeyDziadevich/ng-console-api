@@ -10,6 +10,15 @@ import {
   GET_WEATHER_TOOL_NAME,
   GET_WEATHER_TOOL_DESCRIPTION,
 } from './tools/get-weather.tool';
+import {
+  getUsersInputSchema,
+  getUsersOutputSchema,
+  GET_USERS_TOOL_NAME,
+  GET_USERS_TOOL_DESCRIPTION,
+} from './tools/get-users.tool';
+import { UsersService } from '../users/users.service';
+import { HydratedDocument } from 'mongoose';
+import { User } from '../schemas/user.schema';
 
 @Injectable()
 export class AiService {
@@ -18,12 +27,20 @@ export class AiService {
     typeof weatherInputSchema,
     typeof weatherOutputSchema
   >;
+  private usersTool: ToolAction<
+    typeof getUsersInputSchema,
+    typeof getUsersOutputSchema
+  >;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly usersService: UsersService,
+  ) {
     const apiKey = this.configService.getOrThrow<string>(
       'GOOGLE_GENAI_API_KEY',
     );
     this.ai = genkit({ plugins: [googleAI({ apiKey }), retry.plugin()] });
+
     this.weatherTool = this.ai.defineTool(
       {
         name: GET_WEATHER_TOOL_NAME,
@@ -33,6 +50,27 @@ export class AiService {
       },
       getWeatherHandler,
     );
+
+    this.usersTool = this.ai.defineTool(
+      {
+        name: GET_USERS_TOOL_NAME,
+        description: GET_USERS_TOOL_DESCRIPTION,
+        inputSchema: getUsersInputSchema,
+        outputSchema: getUsersOutputSchema,
+      },
+      async () => {
+        const users = await this.usersService.getAllUsers();
+        return users.map((u) => ({
+          id: (u as HydratedDocument<User>)._id.toString(),
+          username: u.username,
+          email: u.email,
+          role: u.role,
+          ...(u.displayName && { displayName: u.displayName }),
+          ...(u.avatarUrl && { avatarUrl: u.avatarUrl }),
+        }));
+      },
+    );
+
     this.registerFlows();
   }
 
@@ -51,7 +89,7 @@ export class AiService {
     const { text } = await this.ai.generate({
       model: googleAI.model('googleai/gemini-3.1-flash-lite'),
       prompt,
-      tools: [this.weatherTool],
+      tools: [this.weatherTool, this.usersTool],
     });
     return text;
   }
