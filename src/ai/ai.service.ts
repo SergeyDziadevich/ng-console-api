@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { genkit, Genkit, ToolAction, z } from 'genkit';
+import { genkit, Genkit, ToolAction } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import { retry } from '@genkit-ai/middleware';
 import {
@@ -19,6 +19,7 @@ import {
 import { UsersService } from '../users/users.service';
 import { HydratedDocument } from 'mongoose';
 import { User } from '../schemas/user.schema';
+import { Role } from '../users/enums/role.enum';
 
 @Injectable()
 export class AiService {
@@ -70,32 +71,30 @@ export class AiService {
         }));
       },
     );
-
-    this.registerFlows();
   }
 
-  private registerFlows(): void {
-    this.ai.defineFlow(
-      {
-        name: 'generateFlow',
-        inputSchema: z.string(),
-        outputSchema: z.string(),
-      },
-      async (prompt: string) => this.runGenerate(prompt),
-    );
-  }
+  private async runGenerate(prompt: string, role: Role): Promise<string> {
+    const isAdmin = ([Role.Admin] as Role[]).includes(role);
+    const tools: ToolAction<any, any>[] = [this.weatherTool];
+    if (isAdmin) {
+      tools.push(this.usersTool);
+    }
 
-  private async runGenerate(prompt: string): Promise<string> {
+    const system = isAdmin
+      ? undefined
+      : 'If the user asks about users, user lists, user data, or anything related to application user management, respond with exactly: "I do not have access to your internal databases, server, or application user management system."';
+
     const { text } = await this.ai.generate({
       model: googleAI.model('googleai/gemini-3.1-flash-lite'),
+      system,
       prompt,
-      tools: [this.weatherTool, this.usersTool],
+      tools,
     });
     return text;
   }
 
-  async generate(prompt: string): Promise<string> {
+  async generate(prompt: string, role: Role): Promise<string> {
     console.log(`Received prompt: ${prompt}`);
-    return this.runGenerate(prompt);
+    return this.runGenerate(prompt, role);
   }
 }
