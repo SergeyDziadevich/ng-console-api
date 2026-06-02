@@ -4,6 +4,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from './users/users.module';
 import { PostsModule } from './posts/posts.module';
 import { AuthModule } from './auth/auth.module';
+import { ChatModule } from './chat/chat.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -12,6 +14,8 @@ import { AuthModule } from './auth/auth.module';
     UsersModule,
     PostsModule,
     AuthModule,
+    ChatModule,
+    AiModule,
   ],
   controllers: [],
   providers: [],
