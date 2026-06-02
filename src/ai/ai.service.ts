@@ -85,7 +85,7 @@ export class AiService {
       : 'If the user asks about users, user lists, user data, or anything related to application user management, respond with exactly: "I do not have access to your internal databases, server, or application user management system."';
 
     const intentResponse = await this.ai.generate({
-      model: googleAI.model('googleai/gemini-3.1-flash-lite'),
+      model: googleAI.model('gemma-4-26b-a4b-it'),
       prompt: `Classify the user's query as either a 'text' or a 'image' request. Query: "${prompt}"`,
       output: {
         schema: z.object({
@@ -100,7 +100,7 @@ export class AiService {
 
     if (intent === 'text') {
       const { text } = await this.ai.generate({
-        model: googleAI.model('googleai/gemini-3.1-flash-lite'),
+        model: googleAI.model('gemma-4-26b-a4b-it'),
         system,
         prompt,
         tools,
