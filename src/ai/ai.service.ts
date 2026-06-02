@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { genkit, Genkit, ToolAction } from 'genkit';
+import { genkit, Genkit, ToolAction, z } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import { retry } from '@genkit-ai/middleware';
 import {
@@ -84,13 +84,43 @@ export class AiService {
       ? undefined
       : 'If the user asks about users, user lists, user data, or anything related to application user management, respond with exactly: "I do not have access to your internal databases, server, or application user management system."';
 
-    const { text } = await this.ai.generate({
+    const intentResponse = await this.ai.generate({
       model: googleAI.model('googleai/gemini-3.1-flash-lite'),
-      system,
-      prompt,
-      tools,
+      prompt: `Classify the user's query as either a 'text' or a 'image' request. Query: "${prompt}"`,
+      output: {
+        schema: z.object({
+          intent: z.enum(['text', 'image']),
+        }),
+      },
     });
-    return text;
+
+    const intent = intentResponse.output?.intent;
+
+    console.log('intend: ', intent);
+
+    if (intent === 'text') {
+      const { text } = await this.ai.generate({
+        model: googleAI.model('googleai/gemini-3.1-flash-lite'),
+        system,
+        prompt,
+        tools,
+      });
+      return text;
+    } else if (intent === 'image') {
+      const imageResponse = await this.ai.generate({
+        model: googleAI.model('gemini-2.5-flash-image'),
+        prompt: prompt,
+        output: { format: 'media' },
+      });
+      const imageUrl = imageResponse.media?.url;
+
+      if (!imageUrl) {
+        throw new Error('Failed to generate an image.');
+      }
+      return imageUrl;
+    } else {
+      return "Sorry, I couldn't determine how to handle your request.";
+    }
   }
 
   async generate(prompt: string, role: Role): Promise<string> {
