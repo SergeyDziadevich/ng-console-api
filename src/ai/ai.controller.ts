@@ -19,7 +19,11 @@ export class AiController {
     @Body() body: GeneratePromptDto,
     @Req() req: RequestWithUser,
   ): Promise<{ text: string }> {
-    const text = await this.aiService.generate(body.message, req.user.role);
+    const text = await this.aiService.generate(
+      body.message,
+      body.messages,
+      req.user.role,
+    );
     return { text };
   }
 
