@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { AiService } from './ai.service';
 import { GeneratePromptDto } from './dto/generate-prompt.dto';
@@ -21,5 +21,10 @@ export class AiController {
   ): Promise<{ text: string }> {
     const text = await this.aiService.generate(body.message, req.user.role);
     return { text };
+  }
+
+  @Get('files-analytics')
+  async getFileAnalytics(): Promise<{ text: string; sum: number | null }> {
+    return this.aiService.getFileAnalytics();
   }
 }
