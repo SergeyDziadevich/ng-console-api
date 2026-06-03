@@ -20,6 +20,13 @@ import { UsersService } from '../users/users.service';
 import { HydratedDocument } from 'mongoose';
 import { User } from '../schemas/user.schema';
 import { Role } from '../users/enums/role.enum';
+import {
+  docsDir,
+  fsMcpHost,
+  mongoMcpHost,
+  exampleMcpHost,
+} from './mcp/mcp-hosts';
+import { sanitizeToolSchemas } from './helper/sanitize-tool-schemas';
 
 @Injectable()
 export class AiService {
@@ -85,7 +92,7 @@ export class AiService {
       : 'If the user asks about users, user lists, user data, or anything related to application user management, respond with exactly: "I do not have access to your internal databases, server, or application user management system."';
 
     const intentResponse = await this.ai.generate({
-      model: googleAI.model('gemma-4-26b-a4b-it'),
+      model: googleAI.model('googleai/gemini-3.1-flash-lite'),
       prompt: `Classify the user's query as either a 'text' or a 'image' request. Query: "${prompt}"`,
       output: {
         schema: z.object({
@@ -96,19 +103,29 @@ export class AiService {
 
     const intent = intentResponse.output?.intent;
 
-    console.log('intend: ', intent);
+    console.log('intent: ', intent);
+
+    const fsTools = await fsMcpHost.getActiveTools(this.ai);
+    const mongoTools = sanitizeToolSchemas(
+      await mongoMcpHost.getActiveTools(this.ai),
+    );
+    const exampleTools = await exampleMcpHost.getActiveTools(this.ai);
+    const mcpTools = [...fsTools, ...mongoTools, ...exampleTools];
 
     if (intent === 'text') {
       const { text } = await this.ai.generate({
-        model: googleAI.model('gemma-4-26b-a4b-it'),
+        model: googleAI.model('googleai/gemini-3.1-flash-lite'),
         system,
         prompt,
-        tools,
+        tools: mcpTools,
+        maxTurns: 20,
       });
+      // tools,
+
       return text;
     } else if (intent === 'image') {
       const imageResponse = await this.ai.generate({
-        model: googleAI.model('gemini-2.5-flash-image'),
+        model: googleAI.model('googleai/gemini-3.1-flash-lite'),
         prompt: prompt,
         output: { format: 'media' },
       });
@@ -126,5 +143,53 @@ export class AiService {
   async generate(prompt: string, role: Role): Promise<string> {
     console.log(`Received prompt: ${prompt}`);
     return this.runGenerate(prompt, role);
+  }
+
+  async getFileAnalytics(): Promise<{ text: string; sum: number | null }> {
+    // Retrieve filesystem tools from the host
+    const fsTools = await fsMcpHost.getActiveTools(this.ai);
+
+    // Step 1: Use tools to gather analytics (structured output not compatible with function calling)
+    const toolResponse = await this.ai.generate({
+      model: googleAI.model('gemini-2.5-flash-lite'),
+      prompt: `List files in ${docsDir}. Read the content of these files and calculate the total sum of all numeric values found within them. If no numbers are found, state that clearly.`,
+      tools: fsTools,
+      maxTurns: 20,
+    });
+
+    const rawText = toolResponse.text;
+
+    // Step 2: Structure the gathered result (no tools, so structured output works fine)
+    const structuredResponse = await this.ai.generate({
+      model: googleAI.model('googleai/gemini-3.1-flash-lite'),
+      prompt: `Based on the following analysis result, extract a summary and the total numeric sum. If no sum was found, use null.\n\nAnalysis:\n${rawText}`,
+      output: {
+        schema: z.object({
+          text: z
+            .string()
+            .describe(
+              'A summary of the files found and the analysis performed.',
+            ),
+          sum: z
+            .number()
+            .nullable()
+            .describe(
+              'The total sum of all numbers found in the files, or null if none exist.',
+            ),
+        }),
+      },
+    });
+
+    const output = structuredResponse.output;
+
+    if (!output) {
+      throw new Error(
+        'Failed to generate structured output for file analytics.',
+      );
+    }
+
+    console.log('Analytics Output:', output);
+
+    return output;
   }
 }

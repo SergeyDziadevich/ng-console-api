@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@genkit-ai/google-genai": "^1.36.0",
+    "@genkit-ai/mcp": "^1.36.0",
     "@genkit-ai/middleware": "^0.6.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.4",
