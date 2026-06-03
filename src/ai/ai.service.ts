@@ -27,6 +27,7 @@ import {
   exampleMcpHost,
 } from './mcp/mcp-hosts';
 import { sanitizeToolSchemas } from './helper/sanitize-tool-schemas';
+import { ChatMessageDto } from './dto/generate-prompt.dto';
 
 @Injectable()
 export class AiService {
@@ -80,7 +81,11 @@ export class AiService {
     );
   }
 
-  private async runGenerate(prompt: string, role: Role): Promise<string> {
+  private async runGenerate(
+    prompt: string,
+    messages: ChatMessageDto[],
+    role: Role,
+  ): Promise<string> {
     const isAdmin = ([Role.Admin] as Role[]).includes(role);
     const tools: ToolAction<any, any>[] = [this.weatherTool];
     if (isAdmin) {
@@ -90,6 +95,13 @@ export class AiService {
     const system = isAdmin
       ? undefined
       : 'If the user asks about users, user lists, user data, or anything related to application user management, respond with exactly: "I do not have access to your internal databases, server, or application user management system."';
+
+    // Map conversation history to Genkit MessageData format (exclude the last user turn
+    // since it is passed as `prompt` directly, keeping history as prior context only).
+    const conversationHistory = messages.slice(0, -1).map((msg) => ({
+      role: msg.role,
+      content: [{ text: msg.content }],
+    }));
 
     const intentResponse = await this.ai.generate({
       model: googleAI.model('googleai/gemini-3.1-flash-lite'),
@@ -116,6 +128,7 @@ export class AiService {
       const { text } = await this.ai.generate({
         model: googleAI.model('googleai/gemini-3.1-flash-lite'),
         system,
+        messages: conversationHistory,
         prompt,
         tools: [...mcpTools, ...tools],
         maxTurns: 20,
@@ -125,6 +138,7 @@ export class AiService {
     } else if (intent === 'image') {
       const imageResponse = await this.ai.generate({
         model: googleAI.model('googleai/gemini-3.1-flash-lite'),
+        messages: conversationHistory,
         prompt: prompt,
         output: { format: 'media' },
       });
@@ -139,9 +153,14 @@ export class AiService {
     }
   }
 
-  async generate(prompt: string, role: Role): Promise<string> {
+  async generate(
+    prompt: string,
+    messages: ChatMessageDto[],
+    role: Role,
+  ): Promise<string> {
     console.log(`Received prompt: ${prompt}`);
-    return this.runGenerate(prompt, role);
+    console.log(`Messages history: ${JSON.stringify(messages)}`);
+    return this.runGenerate(prompt, messages, role);
   }
 
   async getFileAnalytics(): Promise<{ text: string; sum: number | null }> {
