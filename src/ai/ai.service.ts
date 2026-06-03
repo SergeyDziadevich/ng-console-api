@@ -93,7 +93,7 @@ export class AiService {
     }
 
     const system = isAdmin
-      ? undefined
+      ? 'When you use the getUsers tool to retrieve user data, always begin your response with exactly: "Here is the list of all users:"'
       : 'If the user asks about users, user lists, user data, or anything related to application user management, respond with exactly: "I do not have access to your internal databases, server, or application user management system."';
 
     // Map conversation history to Genkit MessageData format (exclude the last user turn
@@ -137,7 +137,7 @@ export class AiService {
       return text;
     } else if (intent === 'image') {
       const imageResponse = await this.ai.generate({
-        model: googleAI.model('googleai/gemini-3.1-flash-lite'),
+        model: googleAI.model('gemini-2.5-flash-lite'),
         messages: conversationHistory,
         prompt: prompt,
         output: { format: 'media' },
