@@ -117,10 +117,9 @@ export class AiService {
         model: googleAI.model('googleai/gemini-3.1-flash-lite'),
         system,
         prompt,
-        tools: mcpTools,
+        tools: [...mcpTools, ...tools],
         maxTurns: 20,
       });
-      // tools,
 
       return text;
     } else if (intent === 'image') {
