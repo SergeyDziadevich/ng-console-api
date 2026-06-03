@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { googleAI } from '@genkit-ai/google-genai';
 import { createMcpServer } from '@genkit-ai/mcp';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
