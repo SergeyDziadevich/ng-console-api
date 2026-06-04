@@ -3,14 +3,17 @@ import { z } from 'genkit';
 
 export const weatherInputSchema = z.object({ city: z.string() });
 export const weatherOutputSchema = z.object({
-  city: z.string(),
-  temperature: z.number(),
-  condition: z.string(),
+  type: z.literal('weatherWidget'),
+  data: z.object({
+    city: z.string(),
+    temp: z.number(),
+    condition: z.string(),
+  }),
 });
 
 export const GET_WEATHER_TOOL_NAME = 'getWeather';
 export const GET_WEATHER_TOOL_DESCRIPTION =
-  'Returns the current weather for a given city';
+  'Returns the current weather for a given city. Always present the result as a JSON code block.';
 
 // Maps WMO weather codes to human-readable conditions
 function wmoToCondition(code: number): string {
@@ -36,7 +39,9 @@ export async function getWeatherHandler({
   city,
 }: {
   city: string;
-}): Promise<{ city: string; temperature: number; condition: string }> {
+}): Promise<{ type: 'weatherWidget'; data: { city: string; temp: number; condition: string } }> {
+  console.log('getWeatherHandler called with city:', city);
+
   // Step 1: Geocode city → lat/lon (Open-Meteo geocoding, free, no API key)
   const geoRes = await fetch(
     `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`,
@@ -58,8 +63,11 @@ export async function getWeatherHandler({
   const { temperature_2m, weathercode } = weatherData.current;
 
   return {
-    city: name,
-    temperature: Math.round(temperature_2m),
-    condition: wmoToCondition(weathercode),
+    type: 'weatherWidget',
+    data: {
+      city: name,
+      temp: Math.round(temperature_2m),
+      condition: wmoToCondition(weathercode),
+    },
   };
 }
