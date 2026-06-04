@@ -93,8 +93,8 @@ export class AiService {
     }
 
     const system = isAdmin
-      ? 'When you use the getUsers tool to retrieve user data, always begin your response with exactly: "Here is the list of all users:"'
-      : 'If the user asks about users, user lists, user data, or anything related to application user management, respond with exactly: "I do not have access to your internal databases, server, or application user management system."';
+      ? 'When you use the getUsers tool to retrieve user data, always begin your response with exactly: "Here is the list of all users:". When you use the getWeather tool, always return the result as a JSON code block.'
+      : 'If the user asks about users, user lists, user data, or anything related to application user management, respond with exactly: "I do not have access to your internal databases, server, or application user management system.". When you use the getWeather tool, always return the result as a JSON code block.';
 
     // Map conversation history to Genkit MessageData format (exclude the last user turn
     // since it is passed as `prompt` directly, keeping history as prior context only).
