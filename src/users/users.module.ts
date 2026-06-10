@@ -7,6 +7,7 @@ import {
   UserSettings,
   UserSettingsSchema,
 } from '../schemas/user-settings.schema';
+import { UsersResolver } from './users.resolver';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import {
       },
     ]),
   ],
-  providers: [UsersService],
+  providers: [UsersService, UsersResolver],
   controllers: [UsersController],
   exports: [UsersService],
 })
