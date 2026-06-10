@@ -12,6 +12,9 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+.genkit/
+tasks.json
+
 # OS
 .DS_Store
 
