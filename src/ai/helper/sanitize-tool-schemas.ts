@@ -61,6 +61,7 @@ export function sanitizeToolSchemas(
   tools: ToolAction<any, any>[],
 ): ToolAction<any, any>[] {
   for (const tool of tools) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const schema = (tool as any).__action?.inputJsonSchema;
     if (schema) patchJsonSchema(schema as Record<string, any>);
   }
