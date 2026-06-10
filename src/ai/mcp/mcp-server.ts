@@ -1,13 +1,11 @@
 import 'dotenv/config';
 import { googleAI } from '@genkit-ai/google-genai';
 import { createMcpServer } from '@genkit-ai/mcp';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { genkit, z } from 'genkit/beta';
 
 /*
  * This is an example of how to use the MCP server with Genkit.
  */
-
 const ai = genkit({
   plugins: [
     googleAI({
@@ -82,7 +80,6 @@ ai.defineResource(
   },
 );
 
-// Use createMcpServer
 const server = createMcpServer(ai, {
   name: 'example_server',
   version: '0.0.1',
