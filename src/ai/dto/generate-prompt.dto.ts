@@ -19,7 +19,7 @@ export class GeneratePromptDto {
   message: string;
 
   @IsArray()
-  messages: ChatMessageDto[]; // full conversation history
+  messages: ChatMessageDto[];
 
   @IsOptional()
   @IsArray()
