@@ -35,11 +35,10 @@ interface WeatherResult {
   current: { temperature_2m: number; weathercode: number };
 }
 
-export async function getWeatherHandler({
-  city,
-}: {
-  city: string;
-}): Promise<{ type: 'weatherWidget'; data: { city: string; temp: number; condition: string } }> {
+export async function getWeatherHandler({ city }: { city: string }): Promise<{
+  type: 'weatherWidget';
+  data: { city: string; temp: number; condition: string };
+}> {
   console.log('getWeatherHandler called with city:', city);
 
   // Step 1: Geocode city → lat/lon (Open-Meteo geocoding, free, no API key)
