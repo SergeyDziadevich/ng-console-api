@@ -1,8 +1,11 @@
+import { UseGuards } from '@nestjs/common';
 import { Resolver, Query, Args } from '@nestjs/graphql';
+import { AuthGuard } from '../auth/auth.guard';
 import { User } from '../schemas/user.schema';
 import { UsersService } from './users.service';
 
 @Resolver(() => User)
+@UseGuards(AuthGuard)
 export class UsersResolver {
   constructor(private readonly usersService: UsersService) {}
 
