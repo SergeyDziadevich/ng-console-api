@@ -1,5 +1,5 @@
 {
-  "name": "nestks-mongodb",
+  "name": "nestjs-api",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -21,13 +21,17 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@apollo/server": "^5.5.1",
+    "@as-integrations/express5": "^1.1.2",
     "@genkit-ai/google-genai": "^1.36.0",
     "@genkit-ai/mcp": "^1.36.0",
     "@genkit-ai/middleware": "^0.6.0",
     "@nestjs-mcp/server": "^1.0.0",
+    "@nestjs/apollo": "^13.4.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/graphql": "^13.4.2",
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/mongoose": "^11.0.4",
     "@nestjs/platform-express": "^11.0.1",
@@ -35,6 +39,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "genkit": "^1.36.0",
+    "graphql": "^16.14.2",
     "mongoose": "^9.6.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
