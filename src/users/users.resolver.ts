@@ -1,8 +1,9 @@
 import { UseGuards } from '@nestjs/common';
-import { Resolver, Query, Args } from '@nestjs/graphql';
+import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
 import { AuthGuard } from '../auth/auth.guard';
 import { User } from '../schemas/user.schema';
 import { UsersService } from './users.service';
+import { CreateUserInput } from './dto/create-user.input';
 
 @Resolver(() => User)
 @UseGuards(AuthGuard)
@@ -17,5 +18,10 @@ export class UsersResolver {
   @Query(() => User, { nullable: true })
   async user(@Args('id') id: string) {
     return this.usersService.getUserById(id);
+  }
+
+  @Mutation(() => User)
+  async createUser(@Args('createUserInput') createUserInput: CreateUserInput) {
+    return this.usersService.createUser(createUserInput);
   }
 }

@@ -16,7 +16,7 @@ import { AiModule } from './ai/ai.module';
     MongooseModule.forRoot('mongodb://localhost/nest_mongodb'),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      autoSchemaFile: join(process.cwd(), 'schema.gql'),
       sortSchema: true,
     }),
     UsersModule,
