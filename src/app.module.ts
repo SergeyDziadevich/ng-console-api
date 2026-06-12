@@ -27,14 +27,19 @@ import { CacheInterceptor } from '@nestjs/cache-manager';
       isGlobal: true,
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        store: await redisStore({
-          socket: {
-            host: configService.get<string>('REDIS_HOST', 'localhost'),
-            port: configService.get<number>('REDIS_PORT', 6379),
-          },
-        }),
-      }),
+      useFactory: async (configService: ConfigService) => {
+        if (process.env.NODE_ENV === 'test') {
+          return {}; // Memory cache for tests
+        }
+        return {
+          store: await redisStore({
+            socket: {
+              host: configService.get<string>('REDIS_HOST', 'localhost'),
+              port: configService.get<number>('REDIS_PORT', 6379),
+            },
+          }),
+        };
+      },
     }),
     UsersModule,
     PostsModule,
