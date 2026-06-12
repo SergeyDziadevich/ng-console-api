@@ -44,6 +44,12 @@ export class User {
     default: [],
   })
   posts?: Post[];
+
+  @Prop({ required: false })
+  twoFactorSecret?: string;
+
+  @Prop({ default: false })
+  isTwoFactorEnabled: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
