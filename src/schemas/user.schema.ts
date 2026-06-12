@@ -38,9 +38,12 @@ export class User {
   @Prop({ type: String, enum: Role, default: Role.User })
   role: Role;
 
-  @Field(() => [Post])
-  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }] })
-  posts: Post[];
+  @Field(() => [Post], { nullable: true })
+  @Prop({
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Post' }],
+    default: [],
+  })
+  posts?: Post[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
