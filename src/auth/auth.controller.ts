@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/sign-in.dto';
+import { Verify2FaDto } from './dto/verify-2fa.dto';
 import { AuthResponse } from './models/auth.interface';
 import { AuthGuard } from './auth.guard';
 import * as qrcode from 'qrcode';
@@ -27,10 +28,15 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('login')
   signIn(@Body() signInDto: SignInDto): Promise<AuthResponse> {
-    return this.authService.signIn(
-      signInDto.username,
-      signInDto.password,
-      signInDto.twoFactorCode,
+    return this.authService.signIn(signInDto.username, signInDto.password);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('2fa/authenticate')
+  authenticate2FA(@Body() verify2FaDto: Verify2FaDto): Promise<AuthResponse> {
+    return this.authService.authenticate2FA(
+      verify2FaDto.tempToken,
+      verify2FaDto.code,
     );
   }
 
