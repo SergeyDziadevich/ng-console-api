@@ -56,7 +56,9 @@ import { redisStore } from 'cache-manager-redis-yet';
           });
           return { store, ttl: 2000 };
         } catch (err: any) {
-          console.warn(`[CacheModule] Failed to connect to Redis, falling back to memory cache: ${err.message}`);
+          console.warn(
+            `[CacheModule] Failed to connect to Redis, falling back to memory cache: ${err}`,
+          );
           return { ttl: 2000 };
         }
       },
