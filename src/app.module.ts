@@ -13,6 +13,7 @@ import { AuthModule } from './auth/auth.module';
 import { ChatModule } from './chat/chat.module';
 import { AiModule } from './ai/ai.module';
 import { TicketsModule } from './tickets/tickets.module';
+import { redisStore } from 'cache-manager-redis-yet';
 
 @Module({
   imports: [
@@ -41,8 +42,23 @@ import { TicketsModule } from './tickets/tickets.module';
       isGlobal: true,
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        return { ttl: 2000 }; // Temporarily disabled Redis cache, using default memory cache with 2 second TTL
+      useFactory: async (configService: ConfigService) => {
+        if (process.env.NODE_ENV === 'test') {
+          return { ttl: 2000 }; // Memory cache for tests
+        }
+        try {
+          const store = await redisStore({
+            ttl: 2000,
+            socket: {
+              host: configService.get<string>('REDIS_HOST', 'localhost'),
+              port: configService.get<number>('REDIS_PORT', 6379),
+            },
+          });
+          return { store, ttl: 2000 };
+        } catch (err: any) {
+          console.warn(`[CacheModule] Failed to connect to Redis, falling back to memory cache: ${err.message}`);
+          return { ttl: 2000 };
+        }
       },
     }),
     UsersModule,
