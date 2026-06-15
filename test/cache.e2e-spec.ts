@@ -31,16 +31,12 @@ describe('Cache (e2e)', () => {
     const spy = jest.spyOn(usersService, 'getAllUsers').mockResolvedValue([]);
 
     // First request should hit the service
-    await request(app.getHttpServer())
-      .get('/users')
-      .expect(200);
+    await request(app.getHttpServer()).get('/users').expect(200);
 
     expect(spy).toHaveBeenCalledTimes(1);
 
     // Second request should hit the cache, service should NOT be called again
-    await request(app.getHttpServer())
-      .get('/users')
-      .expect(200);
+    await request(app.getHttpServer()).get('/users').expect(200);
 
     expect(spy).toHaveBeenCalledTimes(1); // Still 1
   });
