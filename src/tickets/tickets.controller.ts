@@ -1,12 +1,23 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Delete,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { TicketsService } from './tickets.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { AuthGuard } from '../auth/auth.guard';
+import { JwtPayload } from '../auth/models/auth.interface';
 
 @Controller('tickets')
-// @UseGuards(AuthGuard) // Assuming we want this protected. Wait, the prompt says "REST endpoints", and user adds comments.
+@UseGuards(AuthGuard)
 export class TicketsController {
   constructor(private readonly ticketsService: TicketsService) {}
 
@@ -18,6 +29,11 @@ export class TicketsController {
   @Get()
   findAll() {
     return this.ticketsService.findAll();
+  }
+
+  @Get('epics')
+  findAllEpics() {
+    return this.ticketsService.findAllEpics();
   }
 
   @Get(':id')
@@ -36,7 +52,15 @@ export class TicketsController {
   }
 
   @Post(':id/comments')
-  addComment(@Param('id') id: string, @Body() createCommentDto: CreateCommentDto) {
+  addComment(
+    @Param('id') id: string,
+    @Body() createCommentDto: CreateCommentDto,
+    @Req() req: { user?: JwtPayload },
+  ) {
+    if (req.user) {
+      createCommentDto.authorId =
+        req.user.displayName || req.user.username || 'Unknown User';
+    }
     return this.ticketsService.addComment(+id, createCommentDto);
   }
 }

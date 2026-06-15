@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Ticket } from './entities/ticket.entity';
 import { Comment } from './entities/comment.entity';
+import { EpicTag } from './entities/epic-tag.entity';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
@@ -14,6 +15,8 @@ export class TicketsService {
     private readonly ticketsRepository: Repository<Ticket>,
     @InjectRepository(Comment)
     private readonly commentsRepository: Repository<Comment>,
+    @InjectRepository(EpicTag)
+    private readonly epicTagRepository: Repository<EpicTag>,
   ) {}
 
   async create(createTicketDto: CreateTicketDto): Promise<Ticket> {
@@ -21,8 +24,14 @@ export class TicketsService {
     return this.ticketsRepository.save(ticket);
   }
 
+  async findAllEpics(): Promise<EpicTag[]> {
+    return this.epicTagRepository.find();
+  }
+
   async findAll(): Promise<Ticket[]> {
-    return this.ticketsRepository.find({ relations: { comments: true } });
+    return this.ticketsRepository.find({
+      relations: { comments: true },
+    });
   }
 
   async findOne(id: number): Promise<Ticket> {
@@ -47,7 +56,10 @@ export class TicketsService {
     await this.ticketsRepository.remove(ticket);
   }
 
-  async addComment(ticketId: number, createCommentDto: CreateCommentDto): Promise<Comment> {
+  async addComment(
+    ticketId: number,
+    createCommentDto: CreateCommentDto,
+  ): Promise<Comment> {
     const ticket = await this.findOne(ticketId);
     const comment = this.commentsRepository.create({
       ...createCommentDto,

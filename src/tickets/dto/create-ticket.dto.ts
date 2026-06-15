@@ -1,5 +1,22 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum, IsInt } from 'class-validator';
-import { TicketStatus } from '../entities/ticket.entity';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsEnum,
+  IsInt,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { TicketStatus, TicketPriority } from '../entities/ticket.entity';
+
+export class EpicTagDto {
+  @IsInt()
+  id: number;
+
+  @IsOptional()
+  @IsString()
+  name?: string;
+}
 
 export class CreateTicketDto {
   @IsString()
@@ -15,10 +32,23 @@ export class CreateTicketDto {
   status?: TicketStatus;
 
   @IsOptional()
+  @IsEnum(TicketPriority)
+  priority?: TicketPriority;
+
+  @IsOptional()
   @IsString()
   assignedPersonId?: string;
 
   @IsOptional()
+  @IsString()
+  about?: string;
+
+  @IsOptional()
   @IsInt()
   estimations?: number;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => EpicTagDto)
+  epic?: EpicTagDto;
 }
