@@ -43,12 +43,12 @@ import { redisStore } from 'cache-manager-redis-yet';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
-        if (process.env.NODE_ENV === 'test') {
-          return { ttl: 2000 }; // Memory cache for tests
+        const redisHost = configService.get<string>('REDIS_HOST');
+        if (process.env.NODE_ENV === 'test' || !redisHost) {
+          return {}; // Memory cache for tests
         }
         try {
           const store = await redisStore({
-            ttl: 2000,
             socket: {
               host: configService.get<string>('REDIS_HOST', 'localhost'),
               port: configService.get<number>('REDIS_PORT', 6379),
