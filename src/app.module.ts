@@ -4,16 +4,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { join } from 'path';
 import { UsersModule } from './users/users.module';
 import { PostsModule } from './posts/posts.module';
 import { AuthModule } from './auth/auth.module';
 import { ChatModule } from './chat/chat.module';
 import { AiModule } from './ai/ai.module';
-import { CacheModule } from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-redis-yet';
-import { APP_INTERCEPTOR } from '@nestjs/core';
-import { CacheInterceptor } from '@nestjs/cache-manager';
 import { TicketsModule } from './tickets/tickets.module';
 
 @Module({
@@ -43,22 +41,8 @@ import { TicketsModule } from './tickets/tickets.module';
       isGlobal: true,
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => {
-        if (process.env.NODE_ENV === 'test') {
-          return {}; // Memory cache for tests
-        }
-        try {
-          const store = await redisStore({
-            socket: {
-              host: configService.get<string>('REDIS_HOST', 'localhost'),
-              port: configService.get<number>('REDIS_PORT', 6379),
-            },
-          });
-          return { store };
-        } catch (error) {
-          console.warn('Redis connection failed, falling back to memory cache:', error.message);
-          return {}; // Fallback to memory cache
-        }
+      useFactory: (configService: ConfigService) => {
+        return { ttl: 2000 }; // Temporarily disabled Redis cache, using default memory cache with 2 second TTL
       },
     }),
     UsersModule,
