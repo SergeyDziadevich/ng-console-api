@@ -83,4 +83,11 @@ export class UsersService {
   findOne(username: string): Promise<HydratedDocument<User> | null> {
     return this.userModel.findOne({ username }).exec();
   }
+
+  updateTwoFactor(
+    id: string,
+    data: { twoFactorSecret?: string; isTwoFactorEnabled?: boolean },
+  ): Promise<User | null> {
+    return this.userModel.findByIdAndUpdate(id, data, { new: true });
+  }
 }
