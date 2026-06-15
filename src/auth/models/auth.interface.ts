@@ -1,5 +1,7 @@
 export interface AuthResponse {
-  access_token: string;
+  access_token?: string;
+  requires2fa?: boolean;
+  tempToken?: string;
 }
 
 import { Role } from '../../users/enums/role.enum';
