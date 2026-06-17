@@ -32,6 +32,12 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @Post('google')
+  googleLogin(@Body() body: { token: string }): Promise<AuthResponse> {
+    return this.authService.googleLogin(body.token);
+  }
+
+  @HttpCode(HttpStatus.OK)
   @Post('2fa/authenticate')
   authenticate2FA(@Body() verify2FaDto: Verify2FaDto): Promise<AuthResponse> {
     return this.authService.authenticate2FA(
