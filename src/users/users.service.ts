@@ -84,6 +84,10 @@ export class UsersService {
     return this.userModel.findOne({ username }).exec();
   }
 
+  findByEmail(email: string): Promise<HydratedDocument<User> | null> {
+    return this.userModel.findOne({ email }).exec();
+  }
+
   updateTwoFactor(
     id: string,
     data: { twoFactorSecret?: string; isTwoFactorEnabled?: boolean },
