@@ -14,7 +14,6 @@ import { ChatModule } from './chat/chat.module';
 import { AiModule } from './ai/ai.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { redisStore } from 'cache-manager-redis-yet';
-import { NotificationsGateway } from './ws/notifications.gateway';
 import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
@@ -79,7 +78,6 @@ import { NotificationsModule } from './notifications/notifications.module';
       provide: APP_INTERCEPTOR,
       useClass: CacheInterceptor,
     },
-    NotificationsGateway,
   ],
 })
 export class AppModule {}
