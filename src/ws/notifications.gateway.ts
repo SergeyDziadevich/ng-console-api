@@ -12,7 +12,7 @@ export interface Notification {
   ts: number;
 }
 
-@WebSocketGateway()
+@WebSocketGateway({ connectionStateRecovery: {} })
 export class NotificationsGateway implements OnGatewayConnection {
   @WebSocketServer() server!: Server;
 
