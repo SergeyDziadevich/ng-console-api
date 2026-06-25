@@ -67,12 +67,24 @@ export class UsersService {
     return this.userModel.findById(id).populate('settings');
   }
 
-  updateUser(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {
-    const { avatarUrl, ...rest } = updateUserDto;
+  async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {
+    const { avatarUrl, settings, ...rest } = updateUserDto;
     const updateData: Partial<User> = { ...rest };
     if (avatarUrl !== undefined) {
       updateData.avatarUrl = avatarUrl;
     }
+    
+    if (settings) {
+      const user = await this.userModel.findById(id);
+      if (user && user.settings) {
+        await this.userSettingsModel.findByIdAndUpdate(user.settings, settings);
+      } else if (user) {
+        const newSettings = new this.userSettingsModel(settings);
+        const saveNewSettings = await newSettings.save();
+        updateData.settings = saveNewSettings._id as any;
+      }
+    }
+    
     return this.userModel.findByIdAndUpdate(id, updateData, { new: true });
   }
 
