@@ -20,6 +20,7 @@ export interface RoomMemberDetails {
 
 export interface RoomDetails extends Omit<ChatRoom, 'members'> {
   members: RoomMemberDetails[];
+  hasUnread?: boolean;
 }
 
 export interface EnhancedMessage extends ChatMessage {
@@ -76,12 +77,12 @@ export class ChatService {
       throw new NotFoundException('Room not found');
     }
 
-    const existingUserIds = new Set(room.members.map(m => m.userId));
-    const membersToAdd = newUserIds.filter(id => !existingUserIds.has(id));
+    const existingUserIds = new Set(room.members.map((m) => m.userId));
+    const membersToAdd = newUserIds.filter((id) => !existingUserIds.has(id));
 
     if (membersToAdd.length > 0) {
-      const newMembers = membersToAdd.map(userId =>
-        this.memberRepository.create({ roomId, userId })
+      const newMembers = membersToAdd.map((userId) =>
+        this.memberRepository.create({ roomId, userId }),
       );
       await this.memberRepository.save(newMembers);
     }
@@ -104,7 +105,31 @@ export class ChatService {
       .where('room.id IN (:...roomIds)', { roomIds })
       .getMany();
 
-    return Promise.all(rooms.map((room) => this.enrichRoomWithUsers(room)));
+    return Promise.all(
+      rooms.map(async (room) => {
+        const enriched = await this.enrichRoomWithUsers(room);
+        const membership = memberships.find((m) => m.roomId === room.id);
+
+        let hasUnread = false;
+        if (membership) {
+          const query = this.messageRepository
+            .createQueryBuilder('msg')
+            .where('msg.roomId = :roomId', { roomId: room.id })
+            .andWhere('msg.senderId != :userId', { userId });
+
+          if (membership.lastReadAt) {
+            query.andWhere('msg.createdAt > :lastReadAt', {
+              lastReadAt: membership.lastReadAt,
+            });
+          }
+
+          const unreadMsg = await query.getOne();
+          hasUnread = !!unreadMsg;
+        }
+
+        return { ...enriched, hasUnread };
+      }),
+    );
   }
 
   async getMessagesForRoom(

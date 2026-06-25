@@ -84,7 +84,7 @@ export class UsersService {
       } else if (user) {
         const newSettings = new this.userSettingsModel(settings);
         const saveNewSettings = await newSettings.save();
-        updateData.settings = saveNewSettings._id as any;
+        updateData.settings = saveNewSettings._id as unknown as UserSettings;
       }
     }
 

@@ -11,7 +11,7 @@ export class WsAuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
       const client = context.switchToWs().getClient<Socket>();
-      let token = client.handshake.auth?.token;
+      let token = client.handshake.auth?.token as string | undefined;
 
       if (!token) {
         const authHeader = client.handshake.headers?.authorization;
@@ -32,9 +32,12 @@ export class WsAuthGuard implements CanActivate {
       }
 
       const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
-      (client as any).user = payload;
+      client.data = {
+        ...(client.data as Record<string, unknown>),
+        user: payload,
+      };
       return true;
-    } catch (err) {
+    } catch {
       throw new WsException('Unauthorized');
     }
   }
