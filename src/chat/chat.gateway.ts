@@ -100,4 +100,26 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.error('Failed to send message:', error);
     }
   }
+
+  @SubscribeMessage('markAsRead')
+  async handleMarkAsRead(
+    @ConnectedSocket() client: AuthenticatedSocket,
+    @MessageBody() data: { roomId: string },
+  ): Promise<void> {
+    const user = client.user;
+    if (!user) {
+      return;
+    }
+
+    try {
+      await this.chatService.updateLastRead(data.roomId, user.sub);
+      this.server.to(data.roomId).emit('readReceiptUpdated', {
+        roomId: data.roomId,
+        userId: user.sub,
+        lastReadAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Failed to mark as read:', error);
+    }
+  }
 }

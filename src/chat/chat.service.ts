@@ -15,6 +15,7 @@ export interface RoomMemberDetails {
   username?: string;
   displayName?: string;
   avatarUrl?: string;
+  lastReadAt?: Date;
 }
 
 export interface RoomDetails extends Omit<ChatRoom, 'members'> {
@@ -158,6 +159,16 @@ export class ChatService {
     return !!member;
   }
 
+  async updateLastRead(roomId: string, userId: string): Promise<void> {
+    const member = await this.memberRepository.findOne({
+      where: { roomId, userId },
+    });
+    if (member) {
+      member.lastReadAt = new Date();
+      await this.memberRepository.save(member);
+    }
+  }
+
   async getRoomDetails(roomId: string): Promise<RoomDetails> {
     const room = await this.roomRepository.findOne({
       where: { id: roomId },
@@ -176,6 +187,7 @@ export class ChatService {
           username: user?.username,
           displayName: user?.displayName,
           avatarUrl: user?.avatarUrl,
+          lastReadAt: member.lastReadAt,
         };
       }),
     );
