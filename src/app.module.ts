@@ -14,6 +14,7 @@ import { ChatModule } from './chat/chat.module';
 import { AiModule } from './ai/ai.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { redisStore } from 'cache-manager-redis-yet';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { redisStore } from 'cache-manager-redis-yet';
     ChatModule,
     AiModule,
     TicketsModule,
+    NotificationsModule,
   ],
   controllers: [],
   providers: [
