@@ -38,7 +38,9 @@ export function patchJsonSchema(schema: Record<string, any>): void {
   if (schema['items']) patchJsonSchema(schema['items'] as Record<string, any>);
 
   if (schema['properties']) {
-    for (const prop of Object.values(schema['properties'])) {
+    for (const prop of Object.values(
+      schema['properties'] as Record<string, unknown>,
+    )) {
       patchJsonSchema(prop as Record<string, any>);
     }
   }
@@ -61,9 +63,12 @@ export function sanitizeToolSchemas(
   tools: ToolAction<any, any>[],
 ): ToolAction<any, any>[] {
   for (const tool of tools) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const schema = (tool as any).__action?.inputJsonSchema;
-    if (schema) patchJsonSchema(schema as Record<string, any>);
+    const schema = (
+      tool as unknown as {
+        __action?: { inputJsonSchema?: Record<string, any> };
+      }
+    ).__action?.inputJsonSchema;
+    if (schema) patchJsonSchema(schema);
   }
   return tools;
 }

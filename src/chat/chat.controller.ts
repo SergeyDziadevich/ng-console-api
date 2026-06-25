@@ -44,7 +44,11 @@ export class ChatController {
     @Param('roomId') roomId: string,
     @Body() body: { userIds: string[] },
   ): Promise<RoomDetails> {
-    return this.chatService.addMembersToRoom(roomId, body.userIds, req.user.sub);
+    return this.chatService.addMembersToRoom(
+      roomId,
+      body.userIds,
+      req.user.sub,
+    );
   }
 
   @Get('rooms/:roomId/messages')
