@@ -25,7 +25,8 @@ export class TicketsService {
     const ticket = this.ticketsRepository.create(createTicketDto);
     const savedTicket = await this.ticketsRepository.save(ticket);
 
-    // Send notification email asynchronously
+    // Send notification email
+    // TODO: remove after test functionality
     this.emailService
       .sendNotificationEmail(
         'developersiteweb@gmail.com',
