@@ -10,6 +10,8 @@
 
 A robust NestJS backend application providing the core API for the Cloud Console ecosystem.
 
+**Frontend Application:** [ng-console](https://github.com/SergeyDziadevich/ng-console)
+
 **Main Features:**
 - **Comprehensive API:** Support for both REST and GraphQL endpoints.
 - **Authentication & Authorization:** Secure user management with JWT, Google OAuth2, Role-based Access Control (RBAC), and Two-Factor Authentication (2FA).
