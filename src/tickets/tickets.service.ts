@@ -7,6 +7,7 @@ import { EpicTag } from './entities/epic-tag.entity';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class TicketsService {
@@ -17,11 +18,28 @@ export class TicketsService {
     private readonly commentsRepository: Repository<Comment>,
     @InjectRepository(EpicTag)
     private readonly epicTagRepository: Repository<EpicTag>,
+    private readonly emailService: EmailService,
   ) {}
 
   async create(createTicketDto: CreateTicketDto): Promise<Ticket> {
     const ticket = this.ticketsRepository.create(createTicketDto);
-    return this.ticketsRepository.save(ticket);
+    const savedTicket = await this.ticketsRepository.save(ticket);
+
+    // Send notification email asynchronously
+    this.emailService
+      .sendNotificationEmail(
+        'developersiteweb@gmail.com',
+        'Developer',
+        `A new ticket "${savedTicket.title || `Ticket #${savedTicket.id}`}" has been created.`,
+      )
+      .catch((error) => {
+        console.error(
+          'Failed to send ticket creation notification email:',
+          error,
+        );
+      });
+
+    return savedTicket;
   }
 
   async findAllEpics(): Promise<EpicTag[]> {
