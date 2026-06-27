@@ -21,6 +21,10 @@ describe('EmailService', () => {
 
     service = module.get<EmailService>(EmailService);
     mailerService = module.get<MailerService>(MailerService);
+
+    // Silence the logger to prevent error output during tests
+    jest.spyOn(service['logger'], 'error').mockImplementation(() => {});
+    jest.spyOn(service['logger'], 'log').mockImplementation(() => {});
   });
 
   it('should be defined', () => {
@@ -50,6 +54,53 @@ describe('EmailService', () => {
       subject: 'New Notification',
       template: 'notification',
       context: { name, message },
+    });
+  });
+
+  describe('sendEmail direct', () => {
+    it('should send a generic email successfully', async () => {
+      const to = 'test@example.com';
+      const subject = 'Test Subject';
+      const template = 'test-template';
+      const context = { foo: 'bar' };
+
+      await service.sendEmail(to, subject, template, context);
+
+      expect(mailerService.sendMail).toHaveBeenCalledWith({
+        to,
+        subject,
+        template,
+        context,
+      });
+    });
+
+    it('should log and throw error when sending email fails (Error instance)', async () => {
+      const error = new Error('SMTP Error');
+      jest.spyOn(mailerService, 'sendMail').mockRejectedValueOnce(error);
+      const loggerErrorSpy = jest.spyOn(service['logger'], 'error');
+
+      await expect(
+        service.sendEmail('test@example.com', 'Subj', 'tmpl', {}),
+      ).rejects.toThrow('SMTP Error');
+
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        'Failed to send email to test@example.com: SMTP Error',
+        error.stack,
+      );
+    });
+
+    it('should log and throw error when sending email fails (non-Error instance)', async () => {
+      const error = 'String error';
+      jest.spyOn(mailerService, 'sendMail').mockRejectedValueOnce(error);
+      const loggerErrorSpy = jest.spyOn(service['logger'], 'error');
+
+      await expect(
+        service.sendEmail('test@example.com', 'Subj', 'tmpl', {}),
+      ).rejects.toEqual('String error');
+
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        'Failed to send email to test@example.com: String error',
+      );
     });
   });
 });
