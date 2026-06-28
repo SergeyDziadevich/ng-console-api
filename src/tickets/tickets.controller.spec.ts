@@ -8,8 +8,8 @@ describe('TicketsController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TicketsController],
     })
-      .useMocker(() => ({}))
-      .compile();
+    .useMocker(() => ({}))
+    .compile();
 
     controller = module.get<TicketsController>(TicketsController);
   });
