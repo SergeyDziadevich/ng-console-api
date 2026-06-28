@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as otplib from 'otplib';
-import { User } from '../schemas/user.schema';
 import { UsersService } from '../users/users.service';
 import { AuthResponse } from './models/auth.interface';
 import { OAuth2Client } from 'google-auth-library';
@@ -61,15 +60,15 @@ export class AuthService {
         throw new UnauthorizedException('Invalid Google token');
       }
 
-      let user = (await this.usersService.findByEmail(payload.email)) as unknown as User & { _id: string } | null;
+      let user: any = await this.usersService.findByEmail(payload.email);
       if (!user) {
         const password = Math.random().toString(36).slice(-10) + 'A1!';
-        user = (await this.usersService.createUser({
+        user = await this.usersService.createUser({
           email: payload.email,
           username: payload.name || payload.email,
           password,
           displayName: payload.name || payload.email,
-        })) as unknown as User & { _id: string };
+        });
       }
 
       if (user.isTwoFactorEnabled) {
