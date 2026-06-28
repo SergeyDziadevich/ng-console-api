@@ -17,10 +17,23 @@ A robust NestJS backend application providing the core API for the Cloud Console
 - **Authentication & Authorization:** Secure user management with JWT, Google OAuth2, Role-based Access Control (RBAC), and Two-Factor Authentication (2FA).
 - **Real-Time Communication:** Live chat and real-time notifications powered by Socket.IO and Redis Streams.
 - **AI Integration:** AI Assistant capabilities utilizing Firebase Genkit.
-- **Email Service:** Reusable email module for sending notifications and templates via Nodemailer.
-- **Support & Ticketing:** Full ticket management system for user support.
+- **Message Broker & Asynchronous Processing:** Integrated with Apache Kafka for scalable, decoupled background tasks (e.g., distributing email notifications for support tickets).
+- **Email Service:** Reusable email module for sending notifications and templates via Nodemailer, powered by a Kafka consumer architecture.
+- **Support & Ticketing:** Full ticket management system for user support, utilizing Kafka to trigger asynchronous actions.
 - **Multi-Database Support:** Integrated with MongoDB (Mongoose) for document storage and PostgreSQL (TypeORM) for relational data.
 - **Caching & Performance:** High-performance caching layer using Redis.
+
+## Docker Infrastructure
+
+This project relies on Docker Compose to run local dependencies:
+- **Redis:** Used for caching and real-time streams.
+- **Apache Kafka & Zookeeper:** Used for event streaming and message queues.
+- **Kafka UI:** Web-based interface to monitor the Kafka cluster (available at `http://localhost:8080`).
+
+To start the infrastructure:
+```bash
+$ docker-compose up -d
+```
 
 ## Project setup
 
