@@ -1,11 +1,38 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { ConsumerService } from '../kafka/consumer.service';
 import { MailerService } from '@nestjs-modules/mailer';
 
+interface NotificationPayload {
+  to: string;
+  name: string;
+  message: string;
+}
+
 @Injectable()
-export class EmailService {
+export class EmailService implements OnModuleInit {
   private readonly logger = new Logger(EmailService.name);
 
-  constructor(private readonly mailerService: MailerService) {}
+  constructor(
+    private readonly mailerService: MailerService,
+    private readonly consumerService: ConsumerService,
+  ) {}
+
+  async onModuleInit() {
+    await this.consumerService.consume(
+      'email-consumer-group',
+      { topics: ['email.notification'] },
+      {
+        eachMessage: async ({ message }) => {
+          if (message.value) {
+            const data = JSON.parse(
+              message.value.toString(),
+            ) as NotificationPayload;
+            await this.sendNotificationEmail(data.to, data.name, data.message);
+          }
+        },
+      },
+    );
+  }
 
   async sendEmail(
     to: string,

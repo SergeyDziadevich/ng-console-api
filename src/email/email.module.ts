@@ -4,9 +4,11 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter';
 import { join } from 'path';
 import { EmailService } from './email.service';
+import { KafkaModule } from '../kafka/kafka.module';
 
 @Module({
   imports: [
+    KafkaModule,
     MailerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
