@@ -20,14 +20,26 @@ export class EmailService implements OnModuleInit {
   async onModuleInit() {
     await this.consumerService.consume(
       'email-consumer-group',
-      { topics: ['email.notification'] },
+      { topics: ['email.notification', 'user.created'] },
       {
-        eachMessage: async ({ message }) => {
+        eachMessage: async ({ topic, message }) => {
           if (message.value) {
-            const data = JSON.parse(
-              message.value.toString(),
-            ) as NotificationPayload;
-            await this.sendNotificationEmail(data.to, data.name, data.message);
+            if (topic === 'email.notification') {
+              const data = JSON.parse(
+                message.value.toString(),
+              ) as NotificationPayload;
+              await this.sendNotificationEmail(
+                data.to,
+                data.name,
+                data.message,
+              );
+            } else if (topic === 'user.created') {
+              const data = JSON.parse(message.value.toString()) as {
+                email: string;
+                name: string;
+              };
+              await this.sendNewUserEmail(data);
+            }
           }
         },
       },
@@ -67,6 +79,15 @@ export class EmailService implements OnModuleInit {
       'Welcome to our platform!',
       'welcome', // Corresponds to welcome.hbs
       { name: user.name },
+    );
+  }
+
+  async sendNewUserEmail(user: { email: string; name: string }) {
+    await this.sendEmail(
+      user.email,
+      'New Account Created',
+      'welcome', // Corresponds to welcome.hbs
+      { name: user.name, email: user.email },
     );
   }
 
