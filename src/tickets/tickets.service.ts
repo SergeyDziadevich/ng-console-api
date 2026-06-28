@@ -32,6 +32,7 @@ export class TicketsService {
         messages: [
           {
             value: JSON.stringify({
+              // TODO: change to example@gmail.com
               to: 'developersiteweb@gmail.com',
               name: 'Developer',
               message: `A new ticket "${savedTicket.title || `Ticket #${savedTicket.id}`}" has been created.`,
