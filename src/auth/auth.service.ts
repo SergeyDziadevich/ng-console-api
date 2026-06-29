@@ -6,6 +6,7 @@ import * as otplib from 'otplib';
 import { UsersService } from '../users/users.service';
 import { AuthResponse } from './models/auth.interface';
 import { OAuth2Client } from 'google-auth-library';
+import { User } from '../schemas/user.schema';
 
 @Injectable()
 export class AuthService {
@@ -60,7 +61,9 @@ export class AuthService {
         throw new UnauthorizedException('Invalid Google token');
       }
 
-      let user: any = await this.usersService.findByEmail(payload.email);
+      let user: User | null = await this.usersService.findByEmail(
+        payload.email,
+      );
       if (!user) {
         const password = Math.random().toString(36).slice(-10) + 'A1!';
         user = await this.usersService.createUser({

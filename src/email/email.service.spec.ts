@@ -42,6 +42,7 @@ describe('EmailService', () => {
     const user = { email: 'test@example.com', name: 'Test User' };
     await service.sendWelcomeEmail(user);
 
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(mailerService.sendMail).toHaveBeenCalledWith({
       to: user.email,
       subject: 'Welcome to our platform!',
@@ -56,6 +57,7 @@ describe('EmailService', () => {
     const message = 'You have a new alert!';
     await service.sendNotificationEmail(to, name, message);
 
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     expect(mailerService.sendMail).toHaveBeenCalledWith({
       to,
       subject: 'New Notification',
@@ -73,6 +75,7 @@ describe('EmailService', () => {
 
       await service.sendEmail(to, subject, template, context);
 
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mailerService.sendMail).toHaveBeenCalledWith({
         to,
         subject,
