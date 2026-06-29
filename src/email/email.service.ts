@@ -1,11 +1,50 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { ConsumerService } from '../kafka/consumer.service';
 import { MailerService } from '@nestjs-modules/mailer';
 
+interface NotificationPayload {
+  to: string;
+  name: string;
+  message: string;
+}
+
 @Injectable()
-export class EmailService {
+export class EmailService implements OnModuleInit {
   private readonly logger = new Logger(EmailService.name);
 
-  constructor(private readonly mailerService: MailerService) {}
+  constructor(
+    private readonly mailerService: MailerService,
+    private readonly consumerService: ConsumerService,
+  ) {}
+
+  async onModuleInit() {
+    await this.consumerService.consume(
+      'email-consumer-group',
+      { topics: ['email.notification', 'user.created'] },
+      {
+        eachMessage: async ({ topic, message }) => {
+          if (message.value) {
+            if (topic === 'email.notification') {
+              const data = JSON.parse(
+                message.value.toString(),
+              ) as NotificationPayload;
+              await this.sendNotificationEmail(
+                data.to,
+                data.name,
+                data.message,
+              );
+            } else if (topic === 'user.created') {
+              const data = JSON.parse(message.value.toString()) as {
+                email: string;
+                name: string;
+              };
+              await this.sendNewUserEmail(data);
+            }
+          }
+        },
+      },
+    );
+  }
 
   async sendEmail(
     to: string,
@@ -40,6 +79,15 @@ export class EmailService {
       'Welcome to our platform!',
       'welcome', // Corresponds to welcome.hbs
       { name: user.name },
+    );
+  }
+
+  async sendNewUserEmail(user: { email: string; name: string }) {
+    await this.sendEmail(
+      user.email,
+      'New Account Created',
+      'welcome', // Corresponds to welcome.hbs
+      { name: user.name, email: user.email },
     );
   }
 

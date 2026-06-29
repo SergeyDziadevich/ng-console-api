@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmailService } from './email.service';
 import { MailerService } from '@nestjs-modules/mailer';
+import { ConsumerService } from '../kafka/consumer.service';
 
 describe('EmailService', () => {
   let service: EmailService;
@@ -14,6 +15,12 @@ describe('EmailService', () => {
           provide: MailerService,
           useValue: {
             sendMail: jest.fn().mockResolvedValue(true),
+          },
+        },
+        {
+          provide: ConsumerService,
+          useValue: {
+            consume: jest.fn(),
           },
         },
       ],

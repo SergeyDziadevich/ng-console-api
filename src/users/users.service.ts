@@ -7,12 +7,15 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserSettings } from '../schemas/user-settings.schema';
 
+import { ProducerService } from '../kafka/producer.service';
+
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(UserSettings.name)
     private userSettingsModel: Model<UserSettings>,
+    private readonly producerService: ProducerService,
   ) {}
 
   async createUser({
@@ -26,6 +29,7 @@ export class UsersService {
         password: hashedPassword,
       };
 
+      let savedUser: User;
       if (settings) {
         const newSettings = new this.userSettingsModel(settings);
         const saveNewSettings = await newSettings.save();
@@ -35,12 +39,25 @@ export class UsersService {
           settings: saveNewSettings._id,
         });
 
-        return await newUser.save();
+        savedUser = await newUser.save();
+      } else {
+        const newUser = new this.userModel(userDataWithHashedPassword);
+        savedUser = await newUser.save();
       }
 
-      const newUser = new this.userModel(userDataWithHashedPassword);
+      await this.producerService.produce({
+        topic: 'user.created',
+        messages: [
+          {
+            value: JSON.stringify({
+              email: savedUser.email,
+              name: savedUser.username,
+            }),
+          },
+        ],
+      });
 
-      return await newUser.save();
+      return savedUser;
     } catch (error: unknown) {
       if (
         typeof error === 'object' &&
@@ -67,13 +84,16 @@ export class UsersService {
     return this.userModel.findById(id).populate('settings');
   }
 
-  async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<User | null> {
+  async updateUser(
+    id: string,
+    updateUserDto: UpdateUserDto,
+  ): Promise<User | null> {
     const { avatarUrl, settings, ...rest } = updateUserDto;
     const updateData: Partial<User> = { ...rest };
     if (avatarUrl !== undefined) {
       updateData.avatarUrl = avatarUrl;
     }
-    
+
     if (settings) {
       const user = await this.userModel.findById(id);
       if (user && user.settings) {
@@ -84,7 +104,7 @@ export class UsersService {
         updateData.settings = saveNewSettings._id as any;
       }
     }
-    
+
     return this.userModel.findByIdAndUpdate(id, updateData, { new: true });
   }
 

@@ -16,6 +16,7 @@ import { TicketsModule } from './tickets/tickets.module';
 import { redisStore } from 'cache-manager-redis-yet';
 import { NotificationsModule } from './notifications/notifications.module';
 import { EmailModule } from './email/email.module';
+import { KafkaModule } from './kafka/kafka.module';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { EmailModule } from './email/email.module';
     TicketsModule,
     NotificationsModule,
     EmailModule,
+    KafkaModule,
   ],
   controllers: [],
   providers: [
