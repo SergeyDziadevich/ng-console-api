@@ -6,10 +6,10 @@ import { Ticket } from './entities/ticket.entity';
 import { Comment } from './entities/comment.entity';
 import { EpicTag } from './entities/epic-tag.entity';
 
-import { EmailModule } from '../email/email.module';
+import { KafkaModule } from '../kafka/kafka.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Ticket, Comment, EpicTag]), EmailModule],
+  imports: [TypeOrmModule.forFeature([Ticket, Comment, EpicTag]), KafkaModule],
   controllers: [TicketsController],
   providers: [TicketsService],
 })

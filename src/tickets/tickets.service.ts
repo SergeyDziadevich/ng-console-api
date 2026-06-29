@@ -7,7 +7,7 @@ import { EpicTag } from './entities/epic-tag.entity';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
-import { EmailService } from '../email/email.service';
+import { ProducerService } from '../kafka/producer.service';
 
 @Injectable()
 export class TicketsService {
@@ -18,23 +18,31 @@ export class TicketsService {
     private readonly commentsRepository: Repository<Comment>,
     @InjectRepository(EpicTag)
     private readonly epicTagRepository: Repository<EpicTag>,
-    private readonly emailService: EmailService,
+    private readonly producerService: ProducerService,
   ) {}
 
   async create(createTicketDto: CreateTicketDto): Promise<Ticket> {
     const ticket = this.ticketsRepository.create(createTicketDto);
     const savedTicket = await this.ticketsRepository.save(ticket);
 
-    // Send notification email asynchronously
-    this.emailService
-      .sendNotificationEmail(
-        'developersiteweb@gmail.com',
-        'Developer',
-        `A new ticket "${savedTicket.title || `Ticket #${savedTicket.id}`}" has been created.`,
-      )
+    // Send notification email asynchronously via Kafka
+    this.producerService
+      .produce({
+        topic: 'email.notification',
+        messages: [
+          {
+            value: JSON.stringify({
+              // TODO: change to example@gmail.com
+              to: 'developersiteweb@gmail.com',
+              name: 'Developer',
+              message: `A new ticket "${savedTicket.title || `Ticket #${savedTicket.id}`}" has been created.`,
+            }),
+          },
+        ],
+      })
       .catch((error) => {
         console.error(
-          'Failed to send ticket creation notification email:',
+          'Failed to produce ticket creation notification message:',
           error,
         );
       });
