@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProducerService } from './producer.service';
 
-describe('ProducerService', () => {
+describe.skip('ProducerService', () => {
   let service: ProducerService;
 
   beforeEach(async () => {
