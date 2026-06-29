@@ -35,6 +35,7 @@ export class AuthGuard implements CanActivate {
   private getRequest(context: ExecutionContext): RequestWithUser {
     if (context.getType<string>() === 'graphql') {
       const ctx = GqlExecutionContext.create(context);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       return ctx.getContext().req as RequestWithUser;
     }
     return context.switchToHttp().getRequest<RequestWithUser>();
