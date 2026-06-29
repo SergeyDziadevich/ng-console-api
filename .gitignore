@@ -38,6 +38,9 @@ tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
 
+.todo
+.todo/*
+
 # dotenv environment variable files
 .env
 .env.development.local
