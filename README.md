@@ -1,12 +1,13 @@
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" style="vertical-align: middle;" /></a>
-  <a href="https://kafka.apache.org/" target="blank"><img src="https://www.vectorlogo.zone/logos/apache_kafka/apache_kafka-icon.svg" width="120" alt="Kafka Logo" style="vertical-align: middle;" /></a>
-  <a href="https://graphql.org/" target="blank"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/GraphQL_Logo.svg" width="120" alt="GraphQL Logo" style="vertical-align: middle;" /></a>
-  <a href="https://redis.io/" target="blank"><img src="https://www.vectorlogo.zone/logos/redis/redis-icon.svg" width="120" alt="Redis Logo" style="vertical-align: middle;" /></a>
-  <a href="https://www.postgresql.org/" target="blank"><img src="https://www.vectorlogo.zone/logos/postgresql/postgresql-icon.svg" width="120" alt="PostgreSQL Logo" style="vertical-align: middle;" /></a>
-  <a href="https://typeorm.io/" target="blank"><img src="https://raw.githubusercontent.com/typeorm/typeorm/master/resources/logo_big.png" width="120" alt="TypeORM Logo" style="vertical-align: middle;" /></a>
-  <a href="https://www.mongodb.com/" target="blank"><img src="https://www.vectorlogo.zone/logos/mongodb/mongodb-icon.svg" width="120" alt="MongoDB Logo" style="vertical-align: middle;" /></a>
-  <a href="https://mongoosejs.com/" target="blank"><img src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/mongoose/mongoose.png" width="120" alt="Mongoose Logo" style="vertical-align: middle;" /></a>
+  <a href="http://nestjs.com/" target="blank" title="NestJS"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" style="vertical-align: middle;" /></a>
+  <a href="https://kafka.apache.org/" target="blank" title="Apache Kafka"><img src="https://www.vectorlogo.zone/logos/apache_kafka/apache_kafka-icon.svg" width="120" alt="Kafka Logo" style="vertical-align: middle;" /></a>
+  <a href="https://graphql.org/" target="blank" title="GraphQL"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/GraphQL_Logo.svg" width="120" alt="GraphQL Logo" style="vertical-align: middle;" /></a>
+  <a href="https://redis.io/" target="blank" title="Redis"><img src="https://www.vectorlogo.zone/logos/redis/redis-icon.svg" width="120" alt="Redis Logo" style="vertical-align: middle;" /></a>
+  <a href="https://www.postgresql.org/" target="blank" title="PostgreSQL"><img src="https://www.vectorlogo.zone/logos/postgresql/postgresql-icon.svg" width="120" alt="PostgreSQL Logo" style="vertical-align: middle;" /></a>
+  
+  <a href="https://typeorm.io/" target="blank" title="TypeORM"><img src="https://raw.githubusercontent.com/typeorm/typeorm/master/resources/logo_big.png" width="120" alt="TypeORM Logo" style="vertical-align: middle;" /></a>
+  <a href="https://www.mongodb.com/" target="blank" title="MongoDB"><img src="https://www.vectorlogo.zone/logos/mongodb/mongodb-icon.svg" width="120" alt="MongoDB Logo" style="vertical-align: middle;" /></a>
+  <a href="https://mongoosejs.com/" target="blank" title="Mongoose"><img src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/mongoose/mongoose.png" width="120" alt="Mongoose Logo" style="vertical-align: middle;" /></a>
 </p>
 
 [circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
