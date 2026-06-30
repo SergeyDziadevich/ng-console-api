@@ -9,7 +9,7 @@ env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GAR_LOCATION: europe-central2
   REPOSITORY: my-docker-repo
-  IMAGE: nestjs-api
+  IMAGE: ng-console-api
 
 jobs:
   setup-build-publish-deploy:
@@ -48,7 +48,7 @@ jobs:
         username: ${{ secrets.GCE_USERNAME }}
         key: ${{ secrets.GCE_SSH_KEY }}
         source: "docker-compose.yml"
-        target: "/opt/app"
+        target: "/tmp/backend-compose"
 
     - name: Deploy to Compute Engine
       uses: appleboy/ssh-action@master
@@ -57,13 +57,18 @@ jobs:
         username: ${{ secrets.GCE_USERNAME }}
         key: ${{ secrets.GCE_SSH_KEY }}
         script: |
-          # Make sure to update this path to where your docker-compose.yml lives on the VM
+          # Move the copied docker-compose.yml to the final directory
+          sudo mkdir -p /opt/app
+          sudo mv /tmp/backend-compose/docker-compose.yml /opt/app/docker-compose.yml
           cd /opt/app
           
           # Authenticate docker with GCP (if not already authenticated)
           gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev --quiet
           
+          # Ensure the shared network exists
+          sudo docker network create app-network || true
+          
           # Export variables and restart docker-compose
           export DOCKER_IMAGE_API="${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:latest"
-          docker compose pull ng-console-api
-          docker compose up -d ng-console-api
+          sudo -E docker compose pull ng-console-api
+          sudo -E docker compose up -d ng-console-api
