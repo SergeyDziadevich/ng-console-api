@@ -51,6 +51,22 @@ services:
     depends_on:
       - kafka
 
+  mongo:
+    image: mongo:latest
+    container_name: nest-dws-mongo
+    ports:
+      - "27017:27017"
+
+  postgres:
+    image: postgres:15
+    container_name: nest-dws-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tickets_db
+    ports:
+      - "5432:5432"
+
   ng-console-api:
     image: ${DOCKER_IMAGE_API:-api-local:latest}
     container_name: ng-console-api
@@ -61,9 +77,26 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongo:27017/nest_mongodb
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=tickets_db
+      - GOOGLE_GENAI_API_KEY=${GOOGLE_GENAI_API_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_SECURE=${SMTP_SECURE}
+      - EMAIL_FROM=${EMAIL_FROM}
     depends_on:
       - kafka
       - redis
+      - mongo
+      - postgres
 
 volumes:
     nest-dws-redisdata:

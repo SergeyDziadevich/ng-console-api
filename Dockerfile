@@ -22,6 +22,8 @@ RUN npm ci --omit=dev
 
 # Copy compiled output from build stage
 COPY --from=build /app/dist ./dist
+# Copy src for static docs and templates
+COPY --from=build /app/src ./src
 
 # Start the application
 CMD ["npm", "run", "start:prod"]
