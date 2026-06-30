@@ -25,13 +25,13 @@ ai.defineTool(
       level: z.string(),
     }),
   },
-  async ({ text }) => {
+  ({ text }) => {
     console.error('Calculating complexity for:', text);
     const score = text.length * 1.5 + Math.random() * 10;
-    return {
+    return Promise.resolve({
       score: Math.round(score),
       level: score > 50 ? 'High' : 'Low',
-    };
+    });
   },
 );
 
@@ -53,14 +53,14 @@ ai.defineResource(
     name: 'my resouces',
     uri: 'my://resource',
   },
-  async () => {
-    return {
+  () => {
+    return Promise.resolve({
       content: [
         {
           text: 'my resource',
         },
       ],
-    };
+    });
   },
 );
 
@@ -69,14 +69,14 @@ ai.defineResource(
     name: 'file',
     template: 'file://{path}',
   },
-  async ({ uri }) => {
-    return {
+  ({ uri }) => {
+    return Promise.resolve({
       content: [
         {
           text: `file contents for ${uri}`,
         },
       ],
-    };
+    });
   },
 );
 
