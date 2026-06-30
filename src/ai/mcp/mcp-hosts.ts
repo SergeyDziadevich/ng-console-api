@@ -41,6 +41,7 @@ export const exampleMcpHost = createMcpHost({
       args: isProd
         ? [join(process.cwd(), 'dist/ai/mcp/mcp-server.js')]
         : ['ts-node', join(process.cwd(), 'src/ai/mcp/mcp-server.ts')],
+      env: { ...process.env } as Record<string, string>,
     },
   },
 });
