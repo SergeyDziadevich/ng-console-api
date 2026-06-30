@@ -26,7 +26,8 @@ export const mongoMcpHost = createMcpHost({
       command: 'npx',
       args: ['-y', 'mongodb-mcp-server@latest', '--readOnly'],
       env: {
-        MDB_MCP_CONNECTION_STRING: process.env.MONGODB_URI || 'mongodb://localhost:27017/nest_mongodb',
+        MDB_MCP_CONNECTION_STRING:
+          process.env.MONGODB_URI || 'mongodb://localhost:27017/nest_mongodb',
       },
     },
   },
@@ -37,12 +38,9 @@ export const exampleMcpHost = createMcpHost({
   mcpServers: {
     example: {
       command: isProd ? 'node' : 'npx',
-      args: isProd 
+      args: isProd
         ? [join(process.cwd(), 'dist/ai/mcp/mcp-server.js')]
         : ['ts-node', join(process.cwd(), 'src/ai/mcp/mcp-server.ts')],
-      env: {
-        GOOGLE_GENAI_API_KEY: process.env.GOOGLE_GENAI_API_KEY || '',
-      },
     },
   },
 });
