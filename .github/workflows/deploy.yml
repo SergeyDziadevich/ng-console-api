@@ -41,6 +41,15 @@ jobs:
         docker tag "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:${{ github.sha }}" "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:latest"
         docker push "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:latest"
 
+    - name: Copy docker-compose to VM
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.GCE_HOST }}
+        username: ${{ secrets.GCE_USERNAME }}
+        key: ${{ secrets.GCE_SSH_KEY }}
+        source: "docker-compose.yml"
+        target: "/opt/app"
+
     - name: Deploy to Compute Engine
       uses: appleboy/ssh-action@master
       with:
