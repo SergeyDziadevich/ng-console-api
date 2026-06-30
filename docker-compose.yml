@@ -50,5 +50,24 @@ services:
       - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
     depends_on:
       - kafka
+
+  ng-console-api:
+    image: ${DOCKER_IMAGE_API:-api-local:latest}
+    container_name: ng-console-api
+    ports:
+      - "3000:3000"
+    environment:
+      - KAFKA_BROKERS=kafka:29092
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - NODE_ENV=production
+    depends_on:
+      - kafka
+      - redis
+
 volumes:
     nest-dws-redisdata:
+
+networks:
+  default:
+    name: app-network
