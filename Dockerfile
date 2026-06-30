@@ -24,6 +24,7 @@ RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
 # Copy src for static docs and templates
 COPY --from=build /app/src ./src
+RUN mkdir -p /app/src/docs
 
 # Start the application
 CMD ["npm", "run", "start:prod"]
