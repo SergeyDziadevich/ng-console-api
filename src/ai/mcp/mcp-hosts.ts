@@ -2,7 +2,7 @@ import { createMcpHost } from '@genkit-ai/mcp';
 import { join } from 'path';
 
 const isProd = process.env.NODE_ENV === 'production';
-export const docsDir = join(process.cwd(), isProd ? 'dist/docs' : 'src/docs');
+export const docsDir = join(process.cwd(), 'src/docs');
 
 // Filesystem-only MCP host — schemas are well-formed, safe to pass to Gemini as-is.
 export const fsMcpHost = createMcpHost({
