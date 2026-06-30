@@ -1,7 +1,8 @@
 import { createMcpHost } from '@genkit-ai/mcp';
 import { join } from 'path';
 
-export const docsDir = join(process.cwd(), 'src/docs');
+const isProd = process.env.NODE_ENV === 'production';
+export const docsDir = join(process.cwd(), isProd ? 'dist/docs' : 'src/docs');
 
 // Filesystem-only MCP host — schemas are well-formed, safe to pass to Gemini as-is.
 export const fsMcpHost = createMcpHost({
@@ -25,7 +26,7 @@ export const mongoMcpHost = createMcpHost({
       command: 'npx',
       args: ['-y', 'mongodb-mcp-server@latest', '--readOnly'],
       env: {
-        MDB_MCP_CONNECTION_STRING: 'mongodb://localhost:27017/nest_mongodb',
+        MDB_MCP_CONNECTION_STRING: process.env.MONGODB_URI || 'mongodb://localhost:27017/nest_mongodb',
       },
     },
   },
@@ -35,11 +36,12 @@ export const exampleMcpHost = createMcpHost({
   name: 'exampleHost',
   mcpServers: {
     example: {
-      // Use npx ts-node to run the TypeScript file directly
-      command: 'npx',
-      args: ['ts-node', join(process.cwd(), 'src/ai/mcp/mcp-server.ts')],
+      command: isProd ? 'node' : 'npx',
+      args: isProd 
+        ? [join(process.cwd(), 'dist/ai/mcp/mcp-server.js')]
+        : ['ts-node', join(process.cwd(), 'src/ai/mcp/mcp-server.ts')],
       env: {
-        GOOGLE_GENAI_API_KEY: process.env.GOOGLE_GENAI_API_KEY!,
+        GOOGLE_GENAI_API_KEY: process.env.GOOGLE_GENAI_API_KEY || '',
       },
     },
   },
