@@ -25,7 +25,7 @@ ai.defineTool(
       level: z.string(),
     }),
   },
-  ({ text }) => {
+  async ({ text }) => {
     console.error('Calculating complexity for:', text);
     const score = text.length * 1.5 + Math.random() * 10;
     return {
@@ -53,7 +53,7 @@ ai.defineResource(
     name: 'my resouces',
     uri: 'my://resource',
   },
-  () => {
+  async () => {
     return {
       content: [
         {
@@ -69,7 +69,7 @@ ai.defineResource(
     name: 'file',
     template: 'file://{path}',
   },
-  ({ uri }) => {
+  async ({ uri }) => {
     return {
       content: [
         {
