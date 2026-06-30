@@ -73,7 +73,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - KAFKA_BROKERS=kafka:29092
+      - KAFKA_BROKER=kafka:29092
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - NODE_ENV=production
