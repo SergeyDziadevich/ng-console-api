@@ -7,14 +7,17 @@ describe('AuthService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [AuthService],
+      providers: [
+        AuthService,
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn().mockReturnValue('mock-client-id'),
+          },
+        },
+      ],
     })
-      .useMocker((token) => {
-        if (token === ConfigService) {
-          return { get: jest.fn().mockReturnValue('mock-client-id') };
-        }
-        return {};
-      })
+      .useMocker(() => ({}))
       .compile();
 
     service = module.get<AuthService>(AuthService);

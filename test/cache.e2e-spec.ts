@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
+import * as http from 'http';
 import { AppModule } from './../src/app.module';
 import { UsersService } from './../src/users/users.service';
 import { AuthGuard } from './../src/auth/auth.guard';
-import { Server } from 'http';
 
 describe('Cache (e2e)', () => {
   let app: INestApplication;
@@ -32,14 +32,14 @@ describe('Cache (e2e)', () => {
     const spy = jest.spyOn(usersService, 'getAllUsers').mockResolvedValue([]);
 
     // First request should hit the service
-    await request(app.getHttpServer() as Server)
+    await request(app.getHttpServer() as http.Server)
       .get('/users')
       .expect(200);
 
     expect(spy).toHaveBeenCalledTimes(1);
 
     // Second request should hit the cache, service should NOT be called again
-    await request(app.getHttpServer() as Server)
+    await request(app.getHttpServer() as http.Server)
       .get('/users')
       .expect(200);
 
