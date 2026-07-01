@@ -3,10 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as otplib from 'otplib';
+import { User } from '../schemas/user.schema';
 import { UsersService } from '../users/users.service';
 import { AuthResponse } from './models/auth.interface';
 import { OAuth2Client } from 'google-auth-library';
-import { User } from '../schemas/user.schema';
 
 @Injectable()
 export class AuthService {
@@ -61,9 +61,9 @@ export class AuthService {
         throw new UnauthorizedException('Invalid Google token');
       }
 
-      let user: User | null = await this.usersService.findByEmail(
+      let user = (await this.usersService.findByEmail(
         payload.email,
-      );
+      )) as unknown as (User & { _id: string }) | null;
       if (!user) {
         const password = Math.random().toString(36).slice(-10) + 'A1!';
         user = await this.usersService.createUser({

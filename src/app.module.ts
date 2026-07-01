@@ -25,7 +25,10 @@ import { KafkaModule } from './kafka/kafka.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI', 'mongodb://localhost/nest_mongodb'),
+        uri: configService.get<string>(
+          'MONGODB_URI',
+          'mongodb://localhost/nest_mongodb',
+        ),
       }),
     }),
     TypeOrmModule.forRootAsync({
