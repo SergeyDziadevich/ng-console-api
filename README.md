@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="http://nestjs.com/" target="blank" title="NestJS"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" style="vertical-align: middle;" /></a>
+  <a href="http://nestjs.com/" target="blank" title="NestJS"><img src="nestjs-svg-repo.svg" width="120" alt="Nest Logo" style="vertical-align: middle;" /></a>
 </p>
 <p align="center">
   <a href="https://kafka.apache.org/" target="blank" title="Apache Kafka"><img src="https://www.vectorlogo.zone/logos/apache_kafka/apache_kafka-icon.svg" width="60" alt="Kafka Logo" style="vertical-align: middle;" /></a>
