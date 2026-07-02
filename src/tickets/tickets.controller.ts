@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Req,
+  ForbiddenException,
 } from '@nestjs/common';
 import { TicketsService } from './tickets.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
@@ -47,7 +48,10 @@ export class TicketsController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: string, @Req() req: { user?: JwtPayload }) {
+    if (req.user?.role !== 'admin' && req.user?.role !== 'moderator') {
+      throw new ForbiddenException('You do not have permission to remove tickets.');
+    }
     return this.ticketsService.remove(+id);
   }
 
