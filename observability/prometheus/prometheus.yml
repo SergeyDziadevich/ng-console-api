@@ -1,0 +1,9 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'ng-console-api'
+    metrics_path: '/api/metrics'
+    static_configs:
+      - targets: ['ng-console-api:3000', 'host.docker.internal:3000']
