@@ -17,7 +17,7 @@ import { redisStore } from 'cache-manager-redis-yet';
 import { NotificationsModule } from './notifications/notifications.module';
 import { EmailModule } from './email/email.module';
 import { KafkaModule } from './kafka/kafka.module';
-
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -84,6 +84,7 @@ import { KafkaModule } from './kafka/kafka.module';
     NotificationsModule,
     EmailModule,
     KafkaModule,
+    PrometheusModule.register(),
   ],
   controllers: [],
   providers: [

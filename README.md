@@ -11,7 +11,9 @@
 
 <p align="center">
     <a href="https://typeorm.io/" target="blank" title="TypeORM"><img src="https://raw.githubusercontent.com/typeorm/typeorm/master/resources/logo_big.png" width="60" alt="TypeORM Logo" style="vertical-align: middle;" /></a>
- <a href="https://mongoosejs.com/" target="blank" title="Mongoose"><img src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/mongoose/mongoose.png" width="60" alt="Mongoose Logo" style="vertical-align: middle;" /></a>
+    <a href="https://mongoosejs.com/" target="blank" title="Mongoose"><img src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/mongoose/mongoose.png" width="60" alt="Mongoose Logo" style="vertical-align: middle;" /></a>
+    <a href="https://prometheus.io/" target="blank" title="Prometheus"><img src="https://www.vectorlogo.zone/logos/prometheusio/prometheusio-icon.svg" width="50" alt="Prometheus Logo" style="vertical-align: middle;" /></a>
+    <a href="https://grafana.com/" target="blank" title="Grafana"><img src="https://www.vectorlogo.zone/logos/grafana/grafana-icon.svg" width="50" alt="Grafana Logo" style="vertical-align: middle;" /></a>
 </p>
 
 
@@ -37,6 +39,7 @@ A robust NestJS backend application providing the core API for the Cloud Console
 - **Support & Ticketing:** Full ticket management system for user support, utilizing Kafka to trigger asynchronous actions.
 - **Multi-Database Support:** Integrated with MongoDB (Mongoose) for document storage and PostgreSQL (TypeORM) for relational data.
 - **Caching & Performance:** High-performance caching layer using Redis.
+- **Observability:** Prometheus integration for metrics scraping and Grafana for system monitoring and dashboards.
 
 ## Docker Infrastructure
 
@@ -44,6 +47,8 @@ This project relies on Docker Compose to run local dependencies:
 - **Redis:** Used for caching and real-time streams.
 - **Apache Kafka & Zookeeper:** Used for event streaming and message queues.
 - **Kafka UI:** Web-based interface to monitor the Kafka cluster (available at `http://localhost:8080`).
+- **Prometheus:** Collects metrics from the API (available at `http://localhost:9090`).
+- **Grafana:** Visualizes metrics collected by Prometheus (available at `http://localhost:3001`, default login: `admin`/`admin`).
 
 To start the infrastructure:
 ```bash
@@ -55,6 +60,23 @@ $ docker-compose up -d
 ```bash
 $ npm install
 ```
+
+## Local Development Workflow
+
+When developing locally, it is recommended to run the API on your host machine while running the supporting infrastructure (databases, message brokers, observability tools) in Docker.
+
+**1. Start the Infrastructure**
+Start all infrastructure services *except* the API container:
+```bash
+$ docker-compose up -d redis zookeeper kafka kafka-ui mongo postgres prometheus grafana
+```
+
+**2. Start the API**
+Run the NestJS application in watch mode on your local machine:
+```bash
+$ npm run start:dev
+```
+*Note: Prometheus is configured to successfully scrape metrics from your locally running API via `host.docker.internal`.*
 
 ## Compile and run the project
 
@@ -84,16 +106,15 @@ $ npm run test:cov
 
 ## Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+This project uses **GitHub Actions** for automated CI/CD to **Google Cloud Platform (GCP) Compute Engine**.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+The deployment workflow (`.github/workflows/deploy.yml`) is triggered automatically on pushes to the `main` branch.
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+### Deployment Pipeline Overview:
+1. **Build & Publish:** The application is built into a Docker image and pushed to **Google Artifact Registry**.
+2. **Transfer:** The `docker-compose.yml` file is securely transferred to the target GCE VM via SCP.
+3. **Deploy:** The updated Docker image is pulled on the VM, and `docker compose up -d` restarts the application along with Prometheus and Grafana.
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
 
 ## License
 
