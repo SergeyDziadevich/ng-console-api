@@ -16,6 +16,7 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { JwtPayload } from '../auth/models/auth.interface';
+import { Role } from '../users/enums/role.enum';
 
 @Controller('tickets')
 @UseGuards(AuthGuard)
@@ -49,8 +50,10 @@ export class TicketsController {
 
   @Delete(':id')
   remove(@Param('id') id: string, @Req() req: { user?: JwtPayload }) {
-    if (req.user?.role !== 'admin' && req.user?.role !== 'moderator') {
-      throw new ForbiddenException('You do not have permission to remove tickets.');
+    if (req.user?.role !== Role.Admin && req.user?.role !== Role.Moderator) {
+      throw new ForbiddenException(
+        'You do not have permission to remove tickets.',
+      );
     }
     return this.ticketsService.remove(+id);
   }
