@@ -124,7 +124,7 @@ export class AiService {
       },
       async () => {
         const posts = await this.postsService.findAll();
-        return posts.map((p: any) => ({
+        return posts.map((p) => ({
           id: p._id.toString(),
           title: p.title,
           contents: p.contents,
@@ -171,7 +171,11 @@ export class AiService {
     role: Role,
   ): Promise<string> {
     const isAdmin = ([Role.Admin] as Role[]).includes(role);
-    const tools: ToolAction<any, any>[] = [this.weatherTool, this.postsTool, this.ticketsTool];
+    const tools: ToolAction<any, any>[] = [
+      this.weatherTool,
+      this.postsTool,
+      this.ticketsTool,
+    ];
     if (isAdmin) {
       tools.push(this.usersTool);
       tools.push(this.bulkUpdateTicketsTool);
