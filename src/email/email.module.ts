@@ -16,7 +16,8 @@ import { KafkaModule } from '../kafka/kafka.module';
         transport: {
           host: configService.get<string>('SMTP_HOST', 'smtp.gmail.com'),
           port: configService.get<number>('SMTP_PORT', 587),
-          secure: configService.get<boolean>('SMTP_SECURE', false),
+          secure: configService.get<string>('SMTP_SECURE') === 'true',
+          family: configService.get<number>('SMTP_FAMILY', 4), // Force IPv4
           auth: {
             user: configService.get<string>('EMAIL_USER'),
             pass: configService.get<string>('EMAIL_PASS'),
