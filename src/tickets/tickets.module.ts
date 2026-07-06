@@ -12,5 +12,6 @@ import { KafkaModule } from '../kafka/kafka.module';
   imports: [TypeOrmModule.forFeature([Ticket, Comment, EpicTag]), KafkaModule],
   controllers: [TicketsController],
   providers: [TicketsService],
+  exports: [TicketsService],
 })
 export class TicketsModule {}

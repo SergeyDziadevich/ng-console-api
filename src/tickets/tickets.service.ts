@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Ticket } from './entities/ticket.entity';
+import { Repository, In } from 'typeorm';
+import { Ticket, TicketStatus } from './entities/ticket.entity';
 import { Comment } from './entities/comment.entity';
 import { EpicTag } from './entities/epic-tag.entity';
 import { CreateTicketDto } from './dto/create-ticket.dto';
@@ -92,5 +92,9 @@ export class TicketsService {
       ticket,
     });
     return this.commentsRepository.save(comment);
+  }
+
+  async bulkUpdateStatus(ids: number[], status: TicketStatus): Promise<void> {
+    await this.ticketsRepository.update({ id: In(ids) }, { status });
   }
 }
