@@ -52,4 +52,5 @@ export class User {
   isTwoFactorEnabled: boolean;
 }
 
+export type UserDocument = User & mongoose.Document;
 export const UserSchema = SchemaFactory.createForClass(User);

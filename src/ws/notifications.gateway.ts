@@ -11,6 +11,7 @@ export interface Notification {
   body: string;
   ts: number;
   isSystem?: boolean;
+  type?: string;
 }
 
 @WebSocketGateway({ connectionStateRecovery: {} })
