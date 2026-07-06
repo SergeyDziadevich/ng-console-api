@@ -17,6 +17,27 @@ import {
   GET_USERS_TOOL_DESCRIPTION,
 } from './tools/get-users.tool';
 import { UsersService } from '../users/users.service';
+import { PostsService } from '../posts/posts.service';
+import { TicketsService } from '../tickets/tickets.service';
+import { TicketStatus } from '../tickets/entities/ticket.entity';
+import {
+  getPostsInputSchema,
+  getPostsOutputSchema,
+  GET_POSTS_TOOL_NAME,
+  GET_POSTS_TOOL_DESCRIPTION,
+} from './tools/get-posts.tool';
+import {
+  getTicketsInputSchema,
+  getTicketsOutputSchema,
+  GET_TICKETS_TOOL_NAME,
+  GET_TICKETS_TOOL_DESCRIPTION,
+} from './tools/get-tickets.tool';
+import {
+  bulkUpdateTicketsInputSchema,
+  bulkUpdateTicketsOutputSchema,
+  BULK_UPDATE_TICKETS_TOOL_NAME,
+  BULK_UPDATE_TICKETS_TOOL_DESCRIPTION,
+} from './tools/bulk-update-tickets.tool';
 import { HydratedDocument } from 'mongoose';
 import { User } from '../schemas/user.schema';
 import { Role } from '../users/enums/role.enum';
@@ -40,10 +61,24 @@ export class AiService {
     typeof getUsersInputSchema,
     typeof getUsersOutputSchema
   >;
+  private postsTool: ToolAction<
+    typeof getPostsInputSchema,
+    typeof getPostsOutputSchema
+  >;
+  private ticketsTool: ToolAction<
+    typeof getTicketsInputSchema,
+    typeof getTicketsOutputSchema
+  >;
+  private bulkUpdateTicketsTool: ToolAction<
+    typeof bulkUpdateTicketsInputSchema,
+    typeof bulkUpdateTicketsOutputSchema
+  >;
 
   constructor(
     private readonly configService: ConfigService,
     private readonly usersService: UsersService,
+    private readonly postsService: PostsService,
+    private readonly ticketsService: TicketsService,
   ) {
     const apiKey = this.configService.getOrThrow<string>(
       'GOOGLE_GENAI_API_KEY',
@@ -79,6 +114,55 @@ export class AiService {
         }));
       },
     );
+
+    this.postsTool = this.ai.defineTool(
+      {
+        name: GET_POSTS_TOOL_NAME,
+        description: GET_POSTS_TOOL_DESCRIPTION,
+        inputSchema: getPostsInputSchema,
+        outputSchema: getPostsOutputSchema,
+      },
+      async () => {
+        const posts = await this.postsService.findAll();
+        return posts.map((p: any) => ({
+          id: p._id.toString(),
+          title: p.title,
+          contents: p.contents,
+        }));
+      },
+    );
+
+    this.ticketsTool = this.ai.defineTool(
+      {
+        name: GET_TICKETS_TOOL_NAME,
+        description: GET_TICKETS_TOOL_DESCRIPTION,
+        inputSchema: getTicketsInputSchema,
+        outputSchema: getTicketsOutputSchema,
+      },
+      async () => {
+        const tickets = await this.ticketsService.findAll();
+        return tickets.map((t) => ({
+          id: t.id,
+          title: t.title,
+          description: t.description,
+          status: t.status,
+          priority: t.priority,
+        }));
+      },
+    );
+
+    this.bulkUpdateTicketsTool = this.ai.defineTool(
+      {
+        name: BULK_UPDATE_TICKETS_TOOL_NAME,
+        description: BULK_UPDATE_TICKETS_TOOL_DESCRIPTION,
+        inputSchema: bulkUpdateTicketsInputSchema,
+        outputSchema: bulkUpdateTicketsOutputSchema,
+      },
+      async ({ ids, status }) => {
+        await this.ticketsService.bulkUpdateStatus(ids, status as TicketStatus);
+        return { success: true };
+      },
+    );
   }
 
   private async runGenerate(
@@ -87,14 +171,15 @@ export class AiService {
     role: Role,
   ): Promise<string> {
     const isAdmin = ([Role.Admin] as Role[]).includes(role);
-    const tools: ToolAction<any, any>[] = [this.weatherTool];
+    const tools: ToolAction<any, any>[] = [this.weatherTool, this.postsTool, this.ticketsTool];
     if (isAdmin) {
       tools.push(this.usersTool);
+      tools.push(this.bulkUpdateTicketsTool);
     }
 
     const system = isAdmin
-      ? 'When you use the getUsers tool to retrieve user data, always begin your response with exactly: "Here is the list of all users:". When you use the getWeather tool, always return the result as a JSON code block.'
-      : 'If the user asks about users, user lists, user data, or anything related to application user management, respond with exactly: "I do not have access to your internal databases, server, or application user management system.". When you use the getWeather tool, always return the result as a JSON code block.';
+      ? 'When you use the getUsers tool to retrieve user data, always begin your response with exactly: "Here is the list of all users:". When you use the getWeather tool, always return the result as a JSON code block. You can also use bulkUpdateTicketsTool to update ticket statuses since you are an admin.'
+      : 'If the user asks about users, user lists, user data, or anything related to application user management, respond with exactly: "I do not have access to your internal databases, server, or application user management system.". When you use the getWeather tool, always return the result as a JSON code block. You do not have permissions to modify tickets. You can read posts and tickets though.';
 
     // Map conversation history to Genkit MessageData format (exclude the last user turn
     // since it is passed as `prompt` directly, keeping history as prior context only).

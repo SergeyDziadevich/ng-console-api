@@ -29,4 +29,8 @@ export class PostsService {
   findPostById(id: string) {
     return this.postModel.findById(id).exec();
   }
+
+  findAll() {
+    return this.postModel.find().exec();
+  }
 }
