@@ -8,6 +8,7 @@ import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { ProducerService } from '../kafka/producer.service';
+import { AuditProducerService } from '../audit/audit-producer.service';
 
 @Injectable()
 export class TicketsService {
@@ -19,9 +20,13 @@ export class TicketsService {
     @InjectRepository(EpicTag)
     private readonly epicTagRepository: Repository<EpicTag>,
     private readonly producerService: ProducerService,
+    private readonly auditProducerService: AuditProducerService,
   ) {}
 
-  async create(createTicketDto: CreateTicketDto): Promise<Ticket> {
+  async create(
+    createTicketDto: CreateTicketDto,
+    authorId?: string,
+  ): Promise<Ticket> {
     const ticket = this.ticketsRepository.create(createTicketDto);
     const savedTicket = await this.ticketsRepository.save(ticket);
 
@@ -47,6 +52,16 @@ export class TicketsService {
         );
       });
 
+    this.auditProducerService
+      .logAction(
+        'TICKET_CREATED',
+        'Ticket',
+        savedTicket.id.toString(),
+        authorId || 'SYSTEM', // System or current user
+        { title: savedTicket.title },
+      )
+      .catch((e) => console.error(e));
+
     return savedTicket;
   }
 
@@ -71,15 +86,41 @@ export class TicketsService {
     return ticket;
   }
 
-  async update(id: number, updateTicketDto: UpdateTicketDto): Promise<Ticket> {
+  async update(
+    id: number,
+    updateTicketDto: UpdateTicketDto,
+    authorId?: string,
+  ): Promise<Ticket> {
     const ticket = await this.findOne(id);
     this.ticketsRepository.merge(ticket, updateTicketDto);
-    return this.ticketsRepository.save(ticket);
+    const saved = await this.ticketsRepository.save(ticket);
+
+    this.auditProducerService
+      .logAction(
+        'TICKET_UPDATED',
+        'Ticket',
+        id.toString(),
+        authorId || 'SYSTEM',
+        { updatedFields: Object.keys(updateTicketDto) },
+      )
+      .catch((e) => console.error(e));
+
+    return saved;
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number, authorId?: string): Promise<void> {
     const ticket = await this.findOne(id);
     await this.ticketsRepository.remove(ticket);
+
+    this.auditProducerService
+      .logAction(
+        'TICKET_DELETED',
+        'Ticket',
+        id.toString(),
+        authorId || 'SYSTEM',
+        {},
+      )
+      .catch((e) => console.error(e));
   }
 
   async addComment(

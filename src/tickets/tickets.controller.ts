@@ -24,8 +24,14 @@ export class TicketsController {
   constructor(private readonly ticketsService: TicketsService) {}
 
   @Post()
-  create(@Body() createTicketDto: CreateTicketDto) {
-    return this.ticketsService.create(createTicketDto);
+  create(
+    @Body() createTicketDto: CreateTicketDto,
+    @Req() req: { user?: JwtPayload },
+  ) {
+    const author = req.user
+      ? `${req.user.username || req.user.email} (${req.user.sub})`
+      : undefined;
+    return this.ticketsService.create(createTicketDto, author);
   }
 
   @Get()
@@ -44,8 +50,15 @@ export class TicketsController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateTicketDto: UpdateTicketDto) {
-    return this.ticketsService.update(+id, updateTicketDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateTicketDto: UpdateTicketDto,
+    @Req() req: { user?: JwtPayload },
+  ) {
+    const author = req.user
+      ? `${req.user.username || req.user.email} (${req.user.sub})`
+      : undefined;
+    return this.ticketsService.update(+id, updateTicketDto, author);
   }
 
   @Delete(':id')
@@ -55,7 +68,10 @@ export class TicketsController {
         'You do not have permission to remove tickets.',
       );
     }
-    return this.ticketsService.remove(+id);
+    const author = req.user
+      ? `${req.user.username || req.user.email} (${req.user.sub})`
+      : undefined;
+    return this.ticketsService.remove(+id, author);
   }
 
   @Post(':id/comments')

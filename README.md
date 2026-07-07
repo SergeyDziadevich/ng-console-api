@@ -32,6 +32,7 @@ A robust NestJS backend application providing the core API for the Cloud Console
 **Main Features:**
 - **Comprehensive API:** Support for both REST and GraphQL endpoints.
 - **Authentication & Authorization:** Secure user management with JWT, Google OAuth2, Role-based Access Control (RBAC), and Two-Factor Authentication (2FA).
+- **Audit Logging System:** Comprehensive audit trailing for critical user actions, backed by MongoDB and asynchronous Kafka streaming, featuring customizable data retention policies and filtering.
 - **Real-Time Communication:** Live chat and real-time notifications powered by Socket.IO and Redis Streams.
 - **AI Integration:** AI Assistant capabilities utilizing Firebase Genkit.
 - **Message Broker & Asynchronous Processing:** Integrated with Apache Kafka for scalable, decoupled background tasks (e.g., distributing email notifications for support tickets).

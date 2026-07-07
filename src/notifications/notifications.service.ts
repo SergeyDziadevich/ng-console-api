@@ -42,19 +42,26 @@ export class NotificationsService implements OnModuleInit {
       'notifications-system-group',
       { topics: Object.values(SystemEvents) },
       {
-        eachMessage: async ({ topic, message }) => {
+        eachMessage: ({ message }) => {
           if (message.value) {
-            await this.sendSystemNotification(
-              `Kafka Event [${topic}]`,
-              message.value.toString(),
-            );
+            // Kafka events are no longer sent to the UI as notifications
+            // await this.sendSystemNotification(
+            //   `Kafka Event [${topic}]`,
+            //   message.value.toString(),
+            // );
           }
+          return Promise.resolve();
         },
       },
     );
   }
 
-  async send(input: { title: string; body: string; type?: string; userId?: string }) {
+  async send(input: {
+    title: string;
+    body: string;
+    type?: string;
+    userId?: string;
+  }) {
     const notification: WsNotification = {
       id: randomUUID(),
       title: input.title,
@@ -73,20 +80,28 @@ export class NotificationsService implements OnModuleInit {
       userId: input.userId,
     });
 
-    this.gateway.broadcast({ ...notification, id: createdNotification._id.toString() });
+    this.gateway.broadcast({
+      ...notification,
+      id: createdNotification._id.toString(),
+    });
 
     if (input.type === 'info' && input.userId) {
-      const user = await this.userModel.findById(input.userId).populate('settings').exec();
+      const user = await this.userModel
+        .findById(input.userId)
+        .populate('settings')
+        .exec();
       if (user && user.settings?.receiveEmails) {
         await this.producerService.produce({
           topic: 'email.notification',
-          messages: [{
-            value: JSON.stringify({
-              to: user.email,
-              name: user.username,
-              message: input.body,
-            }),
-          }],
+          messages: [
+            {
+              value: JSON.stringify({
+                to: user.email,
+                name: user.username,
+                message: input.body,
+              }),
+            },
+          ],
         });
       }
     }
@@ -110,7 +125,10 @@ export class NotificationsService implements OnModuleInit {
       type,
     });
 
-    this.gateway.broadcast({ ...notification, id: createdNotification._id.toString() });
+    this.gateway.broadcast({
+      ...notification,
+      id: createdNotification._id.toString(),
+    });
   }
 
   async getNotificationsForUser(userId: string) {
@@ -141,7 +159,7 @@ export class NotificationsService implements OnModuleInit {
     await this.notificationReadStateModel.updateOne(
       { userId, notificationId },
       { $set: { userId, notificationId } },
-      { upsert: true }
+      { upsert: true },
     );
   }
 }

@@ -18,6 +18,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { EmailModule } from './email/email.module';
 import { KafkaModule } from './kafka/kafka.module';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { AuditModule } from './audit/audit.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -67,9 +68,9 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
             },
           });
           return { store, ttl: 2000 };
-        } catch (err: any) {
+        } catch (err: unknown) {
           console.warn(
-            `[CacheModule] Failed to connect to Redis, falling back to memory cache: ${err}`,
+            `[CacheModule] Failed to connect to Redis, falling back to memory cache: ${String(err)}`,
           );
           return { ttl: 2000 };
         }
@@ -84,6 +85,7 @@ import { PrometheusModule } from '@willsoto/nestjs-prometheus';
     NotificationsModule,
     EmailModule,
     KafkaModule,
+    AuditModule,
     PrometheusModule.register(),
   ],
   controllers: [],
