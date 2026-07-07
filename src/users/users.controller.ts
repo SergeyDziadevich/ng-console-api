@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -16,6 +17,12 @@ import mongoose from 'mongoose';
 import { User } from '../schemas/user.schema';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from '../auth/auth.guard';
+import { Request } from 'express';
+import { JwtPayload } from '../auth/models/auth.interface';
+
+interface RequestWithUser extends Request {
+  user: JwtPayload;
+}
 
 @Controller('users')
 export class UsersController {
@@ -23,8 +30,14 @@ export class UsersController {
 
   @UseGuards(AuthGuard)
   @Post()
-  createUser(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.createUser(createUserDto);
+  createUser(
+    @Body() createUserDto: CreateUserDto,
+    @Req() req: RequestWithUser,
+  ) {
+    const author = req.user
+      ? `${req.user.username || req.user.email} (${req.user.sub})`
+      : undefined;
+    return this.usersService.createUser(createUserDto, author);
   }
 
   @UseGuards(AuthGuard)
@@ -51,11 +64,19 @@ export class UsersController {
   async updateUser(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
+    @Req() req: RequestWithUser,
   ) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new NotFoundException('User does not exist');
 
-    const updateUser = await this.usersService.updateUser(id, updateUserDto);
+    const author = req.user
+      ? `${req.user.username || req.user.email} (${req.user.sub})`
+      : undefined;
+    const updateUser = await this.usersService.updateUser(
+      id,
+      updateUserDto,
+      author,
+    );
 
     if (!updateUser) throw new HttpException('User not found', 404);
 
@@ -64,10 +85,14 @@ export class UsersController {
 
   @UseGuards(AuthGuard)
   @Delete(':id')
-  async deleteUser(@Param('id') id: string) {
+  async deleteUser(@Param('id') id: string, @Req() req: RequestWithUser) {
     const isValid = mongoose.Types.ObjectId.isValid(id);
     if (!isValid) throw new NotFoundException('User does not exist');
-    const deleteUser = await this.usersService.deleteUser(id);
+
+    const author = req.user
+      ? `${req.user.username || req.user.email} (${req.user.sub})`
+      : undefined;
+    const deleteUser = await this.usersService.deleteUser(id, author);
     if (!deleteUser) throw new HttpException('User not found', 404);
 
     return;

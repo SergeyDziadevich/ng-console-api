@@ -171,7 +171,7 @@ export class AiService {
     role: Role,
   ): Promise<string> {
     const isAdmin = ([Role.Admin] as Role[]).includes(role);
-    const tools: ToolAction<any, any>[] = [
+    const tools: ToolAction[] = [
       this.weatherTool,
       this.postsTool,
       this.ticketsTool,

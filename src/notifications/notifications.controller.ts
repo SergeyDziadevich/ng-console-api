@@ -46,7 +46,7 @@ export class NotificationsController {
     },
   ) {
     // broadcast the notification to connected clients
-    this.notificationsService.send({
+    void this.notificationsService.send({
       title: body.title || 'Notification',
       body: body.body || body.msg || body.title || '',
       type: body.type,
