@@ -135,7 +135,20 @@ export class TicketsService {
     return this.commentsRepository.save(comment);
   }
 
-  async bulkUpdateStatus(ids: number[], status: TicketStatus): Promise<void> {
+  async bulkUpdateStatus(
+    ids: number[],
+    status: TicketStatus,
+    authorId?: string,
+  ): Promise<void> {
     await this.ticketsRepository.update({ id: In(ids) }, { status });
+    this.auditProducerService
+      .logAction(
+        'TICKET_BULK_UPDATED',
+        'Ticket',
+        ids.join(','),
+        authorId || 'SYSTEM',
+        { status },
+      )
+      .catch((e) => console.error('Failed to log bulk update action:', e));
   }
 }
