@@ -20,6 +20,7 @@ import { UsersService } from '../users/users.service';
 import { PostsService } from '../posts/posts.service';
 import { TicketsService } from '../tickets/tickets.service';
 import { TicketStatus } from '../tickets/entities/ticket.entity';
+import { AuditProducerService } from '../audit/audit-producer.service';
 import {
   getPostsInputSchema,
   getPostsOutputSchema,
@@ -79,6 +80,7 @@ export class AiService {
     private readonly usersService: UsersService,
     private readonly postsService: PostsService,
     private readonly ticketsService: TicketsService,
+    private readonly auditProducerService: AuditProducerService,
   ) {
     const apiKey = this.configService.getOrThrow<string>(
       'GOOGLE_GENAI_API_KEY',
@@ -92,7 +94,16 @@ export class AiService {
         inputSchema: weatherInputSchema,
         outputSchema: weatherOutputSchema,
       },
-      getWeatherHandler,
+      async (input) => {
+        await this.auditProducerService.logAction(
+          'AI_AGENT_TOOL_CALL',
+          'AI_Tool',
+          GET_WEATHER_TOOL_NAME,
+          'AI AGENT',
+          { input },
+        );
+        return getWeatherHandler(input);
+      },
     );
 
     this.usersTool = this.ai.defineTool(
@@ -102,7 +113,14 @@ export class AiService {
         inputSchema: getUsersInputSchema,
         outputSchema: getUsersOutputSchema,
       },
-      async () => {
+      async (input) => {
+        await this.auditProducerService.logAction(
+          'AI_AGENT_TOOL_CALL',
+          'AI_Tool',
+          GET_USERS_TOOL_NAME,
+          'AI AGENT',
+          { input },
+        );
         const users = await this.usersService.getAllUsers();
         return users.map((u) => ({
           id: (u as HydratedDocument<User>)._id.toString(),
@@ -122,7 +140,14 @@ export class AiService {
         inputSchema: getPostsInputSchema,
         outputSchema: getPostsOutputSchema,
       },
-      async () => {
+      async (input) => {
+        await this.auditProducerService.logAction(
+          'AI_AGENT_TOOL_CALL',
+          'AI_Tool',
+          GET_POSTS_TOOL_NAME,
+          'AI AGENT',
+          { input },
+        );
         const posts = await this.postsService.findAll();
         return posts.map((p) => ({
           id: p._id.toString(),
@@ -139,7 +164,14 @@ export class AiService {
         inputSchema: getTicketsInputSchema,
         outputSchema: getTicketsOutputSchema,
       },
-      async () => {
+      async (input) => {
+        await this.auditProducerService.logAction(
+          'AI_AGENT_TOOL_CALL',
+          'AI_Tool',
+          GET_TICKETS_TOOL_NAME,
+          'AI AGENT',
+          { input },
+        );
         const tickets = await this.ticketsService.findAll();
         return tickets.map((t) => ({
           id: t.id,
@@ -159,7 +191,18 @@ export class AiService {
         outputSchema: bulkUpdateTicketsOutputSchema,
       },
       async ({ ids, status }) => {
-        await this.ticketsService.bulkUpdateStatus(ids, status as TicketStatus);
+        await this.auditProducerService.logAction(
+          'AI_AGENT_TOOL_CALL',
+          'AI_Tool',
+          BULK_UPDATE_TICKETS_TOOL_NAME,
+          'AI AGENT',
+          { ids, status },
+        );
+        await this.ticketsService.bulkUpdateStatus(
+          ids,
+          status as TicketStatus,
+          'AI AGENT',
+        );
         return { success: true };
       },
     );
@@ -246,10 +289,30 @@ export class AiService {
     prompt: string,
     messages: ChatMessageDto[],
     role: Role,
+    authorId: string,
   ): Promise<string> {
     console.log(`Received prompt: ${prompt}`);
     console.log(`Messages history: ${JSON.stringify(messages)}`);
-    return this.runGenerate(prompt, messages, role);
+
+    await this.auditProducerService.logAction(
+      'AI_ASSISTANT_PROMPT',
+      'AI_Assistant',
+      'N/A',
+      authorId,
+      { prompt },
+    );
+
+    const response = await this.runGenerate(prompt, messages, role);
+
+    await this.auditProducerService.logAction(
+      'AI_ASSISTANT_RESPONSE',
+      'AI_Assistant',
+      'N/A',
+      'AI AGENT',
+      { response },
+    );
+
+    return response;
   }
 
   async getFileAnalytics(): Promise<{ text: string; sum: number | null }> {
