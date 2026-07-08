@@ -15,7 +15,7 @@ import { ToolAction } from 'genkit';
  *
  * Mutates in place.
  */
-export function patchJsonSchema(schema: Record<string, any>): void {
+export function patchJsonSchema(schema: Record<string, unknown>): void {
   if (!schema || typeof schema !== 'object') return;
 
   // Rule 1 – arrays must have items with a concrete type.
@@ -35,20 +35,21 @@ export function patchJsonSchema(schema: Record<string, any>): void {
     schema['type'] = 'object';
   }
 
-  if (schema['items']) patchJsonSchema(schema['items'] as Record<string, any>);
+  if (schema['items'])
+    patchJsonSchema(schema['items'] as Record<string, unknown>);
 
   if (schema['properties']) {
     for (const prop of Object.values(
       schema['properties'] as Record<string, unknown>,
     )) {
-      patchJsonSchema(prop as Record<string, any>);
+      patchJsonSchema(prop as Record<string, unknown>);
     }
   }
 
   for (const combiner of ['anyOf', 'oneOf', 'allOf'] as const) {
     if (Array.isArray(schema[combiner])) {
       for (const sub of schema[combiner]) {
-        patchJsonSchema(sub as Record<string, any>);
+        patchJsonSchema(sub as Record<string, unknown>);
       }
     }
   }
@@ -59,13 +60,11 @@ export function patchJsonSchema(schema: Record<string, any>): void {
  * array-type parameter has the required `items` field before the tool
  * definition is forwarded to the Gemini API.
  */
-export function sanitizeToolSchemas(
-  tools: ToolAction<any, any>[],
-): ToolAction<any, any>[] {
+export function sanitizeToolSchemas(tools: ToolAction[]): ToolAction[] {
   for (const tool of tools) {
     const schema = (
       tool as unknown as {
-        __action?: { inputJsonSchema?: Record<string, any> };
+        __action?: { inputJsonSchema?: Record<string, unknown> };
       }
     ).__action?.inputJsonSchema;
     if (schema) patchJsonSchema(schema);

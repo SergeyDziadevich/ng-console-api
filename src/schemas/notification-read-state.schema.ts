@@ -15,4 +15,6 @@ export class NotificationReadState {
 }
 
 export type NotificationReadStateDocument = NotificationReadState & Document;
-export const NotificationReadStateSchema = SchemaFactory.createForClass(NotificationReadState);
+export const NotificationReadStateSchema = SchemaFactory.createForClass(
+  NotificationReadState,
+);

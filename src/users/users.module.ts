@@ -9,6 +9,7 @@ import {
 } from '../schemas/user-settings.schema';
 import { UsersResolver } from './users.resolver';
 import { KafkaModule } from '../kafka/kafka.module';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { KafkaModule } from '../kafka/kafka.module';
       },
     ]),
     KafkaModule,
+    AuditModule,
   ],
   providers: [UsersService, UsersResolver],
   controllers: [UsersController],

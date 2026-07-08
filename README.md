@@ -32,14 +32,26 @@ A robust NestJS backend application providing the core API for the Cloud Console
 **Main Features:**
 - **Comprehensive API:** Support for both REST and GraphQL endpoints.
 - **Authentication & Authorization:** Secure user management with JWT, Google OAuth2, Role-based Access Control (RBAC), and Two-Factor Authentication (2FA).
+- **Audit Logging System:** Comprehensive audit trailing for critical user and AI Agent actions, backed by MongoDB and asynchronous Kafka streaming, featuring customizable data retention policies, live WebSocket broadcasts, and filtering.
 - **Real-Time Communication:** Live chat and real-time notifications powered by Socket.IO and Redis Streams.
-- **AI Integration:** AI Assistant capabilities utilizing Firebase Genkit.
+- **AI Integration:** AI Assistant capabilities utilizing Firebase Genkit, fully integrated with the audit logging system to track prompts, responses, and tool executions.
 - **Message Broker & Asynchronous Processing:** Integrated with Apache Kafka for scalable, decoupled background tasks (e.g., distributing email notifications for support tickets).
 - **Email Service:** Reusable email module for sending notifications and templates via Nodemailer, powered by a Kafka consumer architecture.
 - **Support & Ticketing:** Full ticket management system for user support, utilizing Kafka to trigger asynchronous actions.
 - **Multi-Database Support:** Integrated with MongoDB (Mongoose) for document storage and PostgreSQL (TypeORM) for relational data.
 - **Caching & Performance:** High-performance caching layer using Redis.
 - **Observability:** Prometheus integration for metrics scraping and Grafana for system monitoring and dashboards.
+
+## Audit Logging & AI Auditing
+
+The system features a comprehensive, asynchronous audit logging system powered by **Apache Kafka** and **MongoDB**. Critical user and system actions are tracked to maintain a complete history of system activity.
+
+### AI Assistant Auditing
+All interactions with the AI Assistant are fully audited, keeping a clear record of user queries and the agent's actions:
+- **User Queries**: Automatically logged with the action `AI_ASSISTANT_PROMPT`, containing the prompt content. The `authorId` is populated with the authenticated user's identity (e.g., `username (userId)`).
+- **AI Agent Responses**: Logged with the action `AI_ASSISTANT_RESPONSE` containing the agent's output, authored by `AI AGENT`.
+- **Tool Invocations**: Any internal tool executed by the agent (such as fetching users, posts, tickets, or weather) generates an `AI_AGENT_TOOL_CALL` audit log showing the tool name and input parameters, authored by `AI AGENT`.
+- **System Modifications**: When the AI Agent modifies data in bulk (e.g., updating ticket statuses), it logs a `TICKET_BULK_UPDATED` action under the `AI AGENT` author.
 
 ## Docker Infrastructure
 

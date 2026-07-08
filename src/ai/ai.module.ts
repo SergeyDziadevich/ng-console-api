@@ -4,9 +4,10 @@ import { AiController } from './ai.controller';
 import { UsersModule } from '../users/users.module';
 import { PostsModule } from '../posts/posts.module';
 import { TicketsModule } from '../tickets/tickets.module';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
-  imports: [UsersModule, PostsModule, TicketsModule],
+  imports: [UsersModule, PostsModule, TicketsModule, AuditModule],
   controllers: [AiController],
   providers: [AiService],
   exports: [AiService],
