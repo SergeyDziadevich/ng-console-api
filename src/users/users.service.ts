@@ -8,6 +8,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UserSettings } from '../schemas/user-settings.schema';
 
 import { ProducerService } from '../kafka/producer.service';
+import { AuditProducerService } from '../audit/audit-producer.service';
 
 @Injectable()
 export class UsersService {
@@ -16,12 +17,13 @@ export class UsersService {
     @InjectModel(UserSettings.name)
     private userSettingsModel: Model<UserSettings>,
     private readonly producerService: ProducerService,
+    private readonly auditProducerService: AuditProducerService,
   ) {}
 
-  async createUser({
-    settings,
-    ...createUserDto
-  }: CreateUserDto): Promise<User> {
+  async createUser(
+    { settings, ...createUserDto }: CreateUserDto,
+    authorId?: string,
+  ): Promise<User> {
     try {
       const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
       const userDataWithHashedPassword = {
@@ -57,6 +59,23 @@ export class UsersService {
         ],
       });
 
+      const logRequestBody = { ...createUserDto } as Record<string, unknown>;
+      if (logRequestBody['password']) {
+        logRequestBody['password'] = '[REDACTED]';
+      }
+
+      await this.auditProducerService.logAction(
+        'USER_CREATED',
+        'User',
+        savedUser._id.toString(),
+        authorId || 'SYSTEM', // Or current user if available in context
+        {
+          email: savedUser.email,
+          username: savedUser.username,
+          requestBody: logRequestBody,
+        },
+      );
+
       return savedUser;
     } catch (error: unknown) {
       if (
@@ -87,6 +106,7 @@ export class UsersService {
   async updateUser(
     id: string,
     updateUserDto: UpdateUserDto,
+    authorId?: string,
   ): Promise<User | null> {
     const { avatarUrl, settings, ...rest } = updateUserDto;
     const updateData: Partial<User> = { ...rest };
@@ -105,11 +125,45 @@ export class UsersService {
       }
     }
 
-    return this.userModel.findByIdAndUpdate(id, updateData, { new: true });
+    const updatedUser = await this.userModel.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
+
+    if (updatedUser) {
+      const logRequestBody = { ...updateUserDto } as Record<string, unknown>;
+      if (logRequestBody['password']) {
+        logRequestBody['password'] = '[REDACTED]';
+      }
+
+      await this.auditProducerService.logAction(
+        'USER_UPDATED',
+        'User',
+        id,
+        authorId || 'SYSTEM',
+        {
+          updatedFields: Object.keys(updateData),
+          requestBody: logRequestBody,
+        },
+      );
+    }
+
+    return updatedUser;
   }
 
-  deleteUser(id: string): Promise<DeleteResult> {
-    return this.userModel.deleteOne({ _id: id }).exec();
+  async deleteUser(id: string, authorId?: string): Promise<DeleteResult> {
+    const result = await this.userModel.deleteOne({ _id: id }).exec();
+
+    if (result.deletedCount && result.deletedCount > 0) {
+      await this.auditProducerService.logAction(
+        'USER_DELETED',
+        'User',
+        id,
+        authorId || 'SYSTEM',
+        {},
+      );
+    }
+
+    return result;
   }
 
   findOne(username: string): Promise<HydratedDocument<User> | null> {

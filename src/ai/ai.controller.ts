@@ -19,10 +19,14 @@ export class AiController {
     @Body() body: GeneratePromptDto,
     @Req() req: RequestWithUser,
   ): Promise<{ text: string }> {
+    const author = req.user
+      ? `${req.user.username || req.user.email} (${req.user.sub})`
+      : 'UNKNOWN USER';
     const text = await this.aiService.generate(
       body.message,
       body.messages,
       req.user.role,
+      author,
     );
     return { text };
   }

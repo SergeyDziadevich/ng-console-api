@@ -7,9 +7,14 @@ import { Comment } from './entities/comment.entity';
 import { EpicTag } from './entities/epic-tag.entity';
 
 import { KafkaModule } from '../kafka/kafka.module';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Ticket, Comment, EpicTag]), KafkaModule],
+  imports: [
+    TypeOrmModule.forFeature([Ticket, Comment, EpicTag]),
+    KafkaModule,
+    AuditModule,
+  ],
   controllers: [TicketsController],
   providers: [TicketsService],
   exports: [TicketsService],
