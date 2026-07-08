@@ -7,4 +7,5 @@ export class SystemSettings extends Document {
   auditRetentionDays: number;
 }
 
-export const SystemSettingsSchema = SchemaFactory.createForClass(SystemSettings);
+export const SystemSettingsSchema =
+  SchemaFactory.createForClass(SystemSettings);

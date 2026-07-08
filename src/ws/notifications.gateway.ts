@@ -4,6 +4,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import type { Server, Socket } from 'socket.io';
+import { OnEvent } from '@nestjs/event-emitter';
 
 export interface Notification {
   id: string;
@@ -24,5 +25,10 @@ export class NotificationsGateway implements OnGatewayConnection {
 
   broadcast(n: Notification) {
     this.server.emit('notification', n);
+  }
+
+  @OnEvent('audit.log.created')
+  handleAuditLogCreated(payload: any) {
+    this.server.emit('new-audit-log', payload);
   }
 }

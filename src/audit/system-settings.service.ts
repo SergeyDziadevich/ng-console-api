@@ -5,21 +5,25 @@ import { SystemSettings } from '../schemas/system-settings.schema';
 
 @Injectable()
 export class SystemSettingsService implements OnModuleInit {
+  private cachedRetentionDays: number = 30;
+
   constructor(
     @InjectModel(SystemSettings.name)
     private readonly systemSettingsModel: Model<SystemSettings>,
   ) {}
 
   async onModuleInit() {
-    const settings = await this.systemSettingsModel.findOne().exec();
+    let settings = await this.systemSettingsModel.findOne().exec();
     if (!settings) {
-      await this.systemSettingsModel.create({ auditRetentionDays: 30 });
+      settings = await this.systemSettingsModel.create({
+        auditRetentionDays: 30,
+      });
     }
+    this.cachedRetentionDays = settings.auditRetentionDays;
   }
 
   async getAuditRetentionDays(): Promise<number> {
-    const settings = await this.systemSettingsModel.findOne().exec();
-    return settings?.auditRetentionDays || 30;
+    return Promise.resolve(this.cachedRetentionDays);
   }
 
   async setAuditRetentionDays(days: number): Promise<void> {
@@ -30,5 +34,6 @@ export class SystemSettingsService implements OnModuleInit {
       settings.auditRetentionDays = days;
       await settings.save();
     }
+    this.cachedRetentionDays = days;
   }
 }

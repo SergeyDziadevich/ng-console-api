@@ -19,6 +19,8 @@ import { EmailModule } from './email/email.module';
 import { KafkaModule } from './kafka/kafka.module';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { AuditModule } from './audit/audit.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -87,6 +89,7 @@ import { AuditModule } from './audit/audit.module';
     KafkaModule,
     AuditModule,
     PrometheusModule.register(),
+    EventEmitterModule.forRoot(),
   ],
   controllers: [],
   providers: [
