@@ -20,6 +20,7 @@ import { KafkaModule } from './kafka/kafka.module';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { AuditModule } from './audit/audit.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { DocumentsModule } from './documents/documents.module';
 
 @Module({
   imports: [
@@ -88,6 +89,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     EmailModule,
     KafkaModule,
     AuditModule,
+    DocumentsModule,
     PrometheusModule.register(),
     EventEmitterModule.forRoot(),
   ],

@@ -1,0 +1,161 @@
+import {
+  Controller,
+  Post,
+  Get,
+  Delete,
+  Param,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  Req,
+  Query,
+  ForbiddenException,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+  Res,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import type { Response, Request } from 'express';
+import { DocumentsService } from './documents.service';
+import { AuthGuard } from '../auth/auth.guard';
+import { JwtPayload } from '../auth/models/auth.interface';
+import { Role } from '../users/enums/role.enum';
+
+interface RequestWithUser extends Request {
+  user: JwtPayload;
+}
+
+@Controller('documents')
+export class DocumentsController {
+  constructor(private readonly documentsService: DocumentsService) {}
+
+  @Post('upload')
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 10 * 1024 * 1024 }), // 10MB
+          new FileTypeValidator({ fileType: '.(doc|docx|pdf|img|png)' }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.documentsService.uploadFile(file, req.user.sub);
+  }
+
+  @Get()
+  @UseGuards(AuthGuard)
+  async getDocuments(
+    @Req() req: RequestWithUser,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+  ) {
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 10;
+
+    return this.documentsService.getDocuments(
+      req.user.sub,
+      req.user.role,
+      pageNum,
+      limitNum,
+    );
+  }
+
+  @Get(':id')
+  @UseGuards(AuthGuard)
+  async downloadDocument(
+    @Param('id') id: string,
+    @Req() req: RequestWithUser,
+    @Res() res: Response,
+  ) {
+    const document = await this.documentsService.getDocumentById(id);
+
+    if (
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
+      document.uploadedBy.toString() !== req.user.sub &&
+      req.user.role !== Role.Admin &&
+      req.user.role !== Role.Moderator
+    ) {
+      throw new ForbiddenException(
+        'You do not have permission to view this document.',
+      );
+    }
+
+    const stream = this.documentsService.getDownloadStream(document.storageKey);
+
+    res.set({
+      'Content-Type': document.mimeType,
+      'Content-Disposition': `attachment; filename="${document.filename}"`,
+      'Content-Length': document.size,
+    });
+
+    stream.on('error', (err) => {
+      console.error('Stream error:', err);
+      if (!res.headersSent) {
+        res.status(500).send('Error streaming file');
+      }
+    });
+
+    stream.pipe(res);
+  }
+
+  @Delete(':id')
+  @UseGuards(AuthGuard)
+  async deleteDocument(@Param('id') id: string, @Req() req: RequestWithUser) {
+    const document = await this.documentsService.getDocumentById(id);
+
+    // Allow if user is owner OR user is Admin/Moderator
+    if (
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
+      document.uploadedBy.toString() !== req.user.sub &&
+      req.user.role !== Role.Admin &&
+      req.user.role !== Role.Moderator
+    ) {
+      throw new ForbiddenException(
+        'You do not have permission to delete this document.',
+      );
+    }
+
+    return this.documentsService.deleteDocument(id);
+  }
+
+  @Post(':id/share')
+  @UseGuards(AuthGuard)
+  async shareDocument(@Param('id') id: string, @Req() req: RequestWithUser) {
+    const token = await this.documentsService.generateShareToken(
+      id,
+      req.user.sub,
+      req.user.role,
+    );
+    return { token };
+  }
+
+  @Get('shared/:token')
+  async downloadSharedDocument(
+    @Param('token') token: string,
+    @Res() res: Response,
+  ) {
+    const document = await this.documentsService.getDocumentByShareToken(token);
+    const stream = this.documentsService.getDownloadStream(document.storageKey);
+
+    res.set({
+      'Content-Type': document.mimeType,
+      'Content-Disposition': `attachment; filename="${document.filename}"`,
+      'Content-Length': document.size,
+    });
+
+    stream.on('error', (err) => {
+      console.error('Stream error:', err);
+      if (!res.headersSent) {
+        res.status(500).send('Error streaming file');
+      }
+    });
+
+    stream.pipe(res);
+  }
+}
