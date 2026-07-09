@@ -36,6 +36,12 @@ export class Document {
   })
   uploadedBy: User | mongoose.Types.ObjectId;
 
+  @Prop({ default: false })
+  isSigned?: boolean;
+
+  @Prop()
+  signedAt?: Date;
+
   @Field()
   createdAt: Date;
 

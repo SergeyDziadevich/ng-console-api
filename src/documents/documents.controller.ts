@@ -4,6 +4,7 @@ import {
   Get,
   Delete,
   Param,
+  Body,
   UseGuards,
   UseInterceptors,
   UploadedFile,
@@ -91,7 +92,6 @@ export class DocumentsController {
     res.set({
       'Content-Type': document.mimeType,
       'Content-Disposition': `attachment; filename="${document.filename}"`,
-      'Content-Length': document.size,
     });
 
     stream.on('error', (err) => {
@@ -102,6 +102,22 @@ export class DocumentsController {
     });
 
     stream.pipe(res);
+  }
+
+  @Post(':id/sign')
+  @UseGuards(AuthGuard)
+  async signDocument(
+    @Param('id') id: string,
+    @Req() req: RequestWithUser,
+    @Body('signatureImage') signatureImage?: string,
+  ) {
+    return this.documentsService.signDocument(
+      id,
+      req.user.sub,
+      req.user.displayName || req.user.username || 'User',
+      req.user.role,
+      signatureImage,
+    );
   }
 
   @Delete(':id')
@@ -121,7 +137,7 @@ export class DocumentsController {
       );
     }
 
-    return this.documentsService.deleteDocument(id);
+    return this.documentsService.deleteDocument(id, req.user.sub);
   }
 
   @Post(':id/share')
@@ -146,7 +162,6 @@ export class DocumentsController {
     res.set({
       'Content-Type': document.mimeType,
       'Content-Disposition': `attachment; filename="${document.filename}"`,
-      'Content-Length': document.size,
     });
 
     stream.on('error', (err) => {
