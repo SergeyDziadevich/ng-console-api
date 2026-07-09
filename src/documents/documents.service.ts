@@ -3,6 +3,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -11,6 +12,8 @@ import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Document, DocumentDocument } from '../schemas/document.schema';
 import * as crypto from 'crypto';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { AuditProducerService } from '../audit/audit-producer.service';
 
 @Injectable()
 export class DocumentsService {
@@ -21,6 +24,7 @@ export class DocumentsService {
     @InjectModel(Document.name) private documentModel: Model<DocumentDocument>,
     private configService: ConfigService,
     private eventEmitter: EventEmitter2,
+    private readonly auditProducerService: AuditProducerService,
   ) {
     this.bucketName = this.configService.get<string>(
       'GCS_BUCKET_NAME',
@@ -74,6 +78,14 @@ export class DocumentsService {
       });
 
       const savedDocument = await document.save();
+
+      await this.auditProducerService.logAction(
+        'DOCUMENT_UPLOADED',
+        'Document',
+        savedDocument._id.toString(),
+        userId,
+        { filename: file.originalname },
+      );
 
       this.eventEmitter.emit('document.uploaded', {
         documentId: savedDocument._id,
@@ -171,7 +183,7 @@ export class DocumentsService {
     return document;
   }
 
-  async deleteDocument(id: string): Promise<void> {
+  async deleteDocument(id: string, userId: string): Promise<void> {
     const document = await this.getDocumentById(id);
 
     const bucket = this.storage.bucket(this.bucketName);
@@ -180,9 +192,117 @@ export class DocumentsService {
     try {
       await file.delete({ ignoreNotFound: true });
       await this.documentModel.findByIdAndDelete(id).exec();
+
+      await this.auditProducerService.logAction(
+        'DOCUMENT_DELETED',
+        'Document',
+        id,
+        userId,
+        { filename: document.filename },
+      );
     } catch (error) {
       console.error('Error deleting file from GCS:', error);
       throw new InternalServerErrorException('Failed to delete file');
+    }
+  }
+
+  async signDocument(
+    id: string,
+    userId: string,
+    userName: string,
+    role: string,
+    signatureImage?: string,
+  ): Promise<DocumentDocument> {
+    const document = await this.getDocumentById(id);
+
+    if (
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
+      document.uploadedBy.toString() !== userId &&
+      role !== 'admin' &&
+      role !== 'moderator'
+    ) {
+      throw new ForbiddenException(
+        'You do not have permission to sign this document.',
+      );
+    }
+
+    if (document.mimeType !== 'application/pdf') {
+      throw new BadRequestException('Only PDF documents can be signed.');
+    }
+
+    if (document.isSigned) {
+      throw new BadRequestException('Document is already signed.');
+    }
+
+    const bucket = this.storage.bucket(this.bucketName);
+    const file = bucket.file(document.storageKey);
+
+    try {
+      const [fileBuffer] = await file.download();
+
+      const pdfDoc = await PDFDocument.load(fileBuffer);
+      const helveticaFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+      const pages = pdfDoc.getPages();
+      const firstPage = pages[0];
+
+      const signatureText = `Digitally Signed by ${userName} on ${new Date().toLocaleDateString()}`;
+      firstPage.drawText(signatureText, {
+        x: 50,
+        y: 30,
+        size: 14,
+        font: helveticaFont,
+        color: rgb(0, 0.53, 0.71),
+      });
+
+      const textWidth = helveticaFont.widthOfTextAtSize(signatureText, 14);
+
+      if (signatureImage) {
+        const base64Data = signatureImage.replace(
+          /^data:image\/png;base64,/,
+          '',
+        );
+        const imageBytes = Buffer.from(base64Data, 'base64');
+        const pngImage = await pdfDoc.embedPng(imageBytes);
+        // Signature pad canvas is usually wide, scale it down further
+        const pngDims = pngImage.scale(0.25);
+        firstPage.drawImage(pngImage, {
+          x: 50 + textWidth + 15,
+          y: 20,
+          width: pngDims.width,
+          height: pngDims.height,
+        });
+      }
+
+      const pdfBytes = await pdfDoc.save();
+
+      await file.save(Buffer.from(pdfBytes), {
+        contentType: 'application/pdf',
+        resumable: false,
+      });
+
+      document.size = pdfBytes.length;
+      document.isSigned = true;
+      document.signedAt = new Date();
+      await document.save();
+
+      await this.auditProducerService.logAction(
+        'DOCUMENT_SIGNED',
+        'Document',
+        id,
+        userId,
+        { filename: document.filename },
+      );
+
+      this.eventEmitter.emit('document.signed', {
+        documentId: document._id,
+        userId,
+      });
+
+      return document;
+    } catch (error) {
+      console.error('Error signing document in GCS:', error);
+      throw new InternalServerErrorException('Failed to sign document');
     }
   }
 }
