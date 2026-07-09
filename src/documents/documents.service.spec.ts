@@ -4,13 +4,12 @@ import { getModelToken } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AuditProducerService } from '../audit/audit-producer.service';
-import { Document, DocumentDocument } from '../schemas/document.schema';
+import { Document } from '../schemas/document.schema';
 import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
-import { Model } from 'mongoose';
 
 // Mock @google-cloud/storage
 jest.mock('@google-cloud/storage', () => ({
@@ -130,7 +129,7 @@ describe('DocumentsService', () => {
   describe('getDocumentById', () => {
     it('should return a document if found', async () => {
       const mockDoc = { _id: 'doc-id' };
-      mockExec.mockResolvedValueOnce(mockDoc as unknown as DocumentDocument);
+      mockExec.mockResolvedValueOnce(mockDoc);
 
       const result = await service.getDocumentById('doc-id');
       expect(result).toEqual(mockDoc);
@@ -147,12 +146,20 @@ describe('DocumentsService', () => {
 
   describe('deleteDocument', () => {
     it('should delete a document successfully', async () => {
-      const mockDoc = { _id: 'doc-id', storageKey: 'path/to/file', filename: 'file.pdf' };
-      mockExec.mockResolvedValueOnce(mockDoc as unknown as DocumentDocument); // getDocumentById mock
-      mockExec.mockResolvedValueOnce(mockDoc as unknown as DocumentDocument); // findByIdAndDelete mock
+      const mockDoc = {
+        _id: 'doc-id',
+        storageKey: 'path/to/file',
+        filename: 'file.pdf',
+      };
+      mockExec.mockResolvedValueOnce(mockDoc); // getDocumentById mock
+      mockExec.mockResolvedValueOnce(mockDoc); // findByIdAndDelete mock
 
-      await expect(service.deleteDocument('doc-id', 'user-1')).resolves.toBeUndefined();
-      expect(mockDocumentModel.findByIdAndDelete).toHaveBeenCalledWith('doc-id');
+      await expect(
+        service.deleteDocument('doc-id', 'user-1'),
+      ).resolves.toBeUndefined();
+      expect(mockDocumentModel.findByIdAndDelete).toHaveBeenCalledWith(
+        'doc-id',
+      );
     });
   });
 
@@ -163,7 +170,7 @@ describe('DocumentsService', () => {
         uploadedBy: { toString: () => 'user-1' },
         mimeType: 'application/pdf',
       };
-      mockExec.mockResolvedValueOnce(mockDoc as unknown as DocumentDocument);
+      mockExec.mockResolvedValueOnce(mockDoc);
 
       await expect(
         service.signDocument('doc-id', 'user-2', 'User Two', 'user'),
@@ -176,7 +183,7 @@ describe('DocumentsService', () => {
         uploadedBy: { toString: () => 'user-1' },
         mimeType: 'image/png',
       };
-      mockExec.mockResolvedValueOnce(mockDoc as unknown as DocumentDocument);
+      mockExec.mockResolvedValueOnce(mockDoc);
 
       await expect(
         service.signDocument('doc-id', 'user-1', 'User One', 'user'),
@@ -190,7 +197,7 @@ describe('DocumentsService', () => {
         mimeType: 'application/pdf',
         isSigned: true,
       };
-      mockExec.mockResolvedValueOnce(mockDoc as unknown as DocumentDocument);
+      mockExec.mockResolvedValueOnce(mockDoc);
 
       await expect(
         service.signDocument('doc-id', 'user-1', 'User One', 'user'),
