@@ -18,7 +18,9 @@ import {
   generateInvoicePdf,
   generateContractPdf,
   generateB2BContractPlPdf,
+  generateMsaPdf,
 } from './document-generators';
+
 @Injectable()
 export class DocumentsService {
   private storage: Storage;
@@ -311,7 +313,7 @@ export class DocumentsService {
   }
 
   async generateDocument(
-    templateType: 'invoice' | 'contract' | 'b2b-contract-pl',
+    templateType: 'msa' | 'invoice' | 'contract' | 'b2b-contract-pl',
     data: Record<string, any>,
     userId: string,
   ): Promise<Document> {
@@ -319,6 +321,9 @@ export class DocumentsService {
       let pdfBytes: Uint8Array;
 
       switch (templateType) {
+        case 'msa':
+          pdfBytes = await generateMsaPdf(data);
+          break;
         case 'invoice':
           pdfBytes = await generateInvoicePdf(data);
           break;
