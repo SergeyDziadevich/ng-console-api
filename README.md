@@ -32,7 +32,7 @@ A robust NestJS backend application providing the core API for the Cloud Console
 **Main Features:**
 - **Comprehensive API:** Support for both REST and GraphQL endpoints.
 - **Authentication & Authorization:** Secure user management with JWT, Google OAuth2, Role-based Access Control (RBAC), and Two-Factor Authentication (2FA).
-- **Document Storage, Sharing & Signing:** Secure file uploads to Google Cloud Storage (GCS), public sharing capabilities via generated short links, and built-in PDF document signing.
+- **Document Storage, Sharing, Signing & Generation:** Secure file uploads to Google Cloud Storage (GCS), public sharing capabilities via generated short links, built-in PDF document signing, and dynamic PDF document generation from templates.
 - **Audit Logging System:** Comprehensive audit trailing for critical user and AI Agent actions, backed by MongoDB and asynchronous Kafka streaming, featuring customizable data retention policies, live WebSocket broadcasts, and filtering.
 - **Real-Time Communication:** Live chat and real-time notifications powered by Socket.IO and Redis Streams.
 - **AI Integration:** AI Assistant capabilities utilizing Firebase Genkit, fully integrated with the audit logging system to track prompts, responses, and tool executions.
