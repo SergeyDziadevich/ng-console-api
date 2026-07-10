@@ -49,6 +49,19 @@ export class DocumentsController {
     return this.documentsService.uploadFile(file, req.user.sub);
   }
 
+  @Post('generate')
+  @UseGuards(AuthGuard)
+  async generateDocument(
+    @Body() dto: import('./dto/generate-document.dto').GenerateDocumentDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.documentsService.generateDocument(
+      dto.templateType,
+      dto.data,
+      req.user.sub,
+    );
+  }
+
   @Get()
   @UseGuards(AuthGuard)
   async getDocuments(
