@@ -14,6 +14,12 @@ import { Document, DocumentDocument } from '../schemas/document.schema';
 import * as crypto from 'crypto';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { AuditProducerService } from '../audit/audit-producer.service';
+import {
+  generateInvoicePdf,
+  generateContractPdf,
+  generateB2BContractPlPdf,
+  generateMsaPdf,
+} from './document-generators';
 
 @Injectable()
 export class DocumentsService {
@@ -303,6 +309,75 @@ export class DocumentsService {
     } catch (error) {
       console.error('Error signing document in GCS:', error);
       throw new InternalServerErrorException('Failed to sign document');
+    }
+  }
+
+  async generateDocument(
+    templateType: 'msa' | 'invoice' | 'contract' | 'b2b-contract-pl',
+    data: Record<string, any>,
+    userId: string,
+  ): Promise<Document> {
+    try {
+      let pdfBytes: Uint8Array;
+
+      switch (templateType) {
+        case 'msa':
+          pdfBytes = await generateMsaPdf(data);
+          break;
+        case 'invoice':
+          pdfBytes = await generateInvoicePdf(data);
+          break;
+        case 'contract':
+          pdfBytes = await generateContractPdf(data);
+          break;
+        case 'b2b-contract-pl':
+          pdfBytes = await generateB2BContractPlPdf(data);
+          break;
+        default:
+          throw new BadRequestException('Invalid template type');
+      }
+
+      const fileBuffer = Buffer.from(pdfBytes);
+
+      const fileId = crypto.randomUUID();
+      const filename = `Generated_${templateType.charAt(0).toUpperCase() + templateType.slice(1)}_${fileId.substring(0, 8)}.pdf`;
+      const storageKey = `documents/${userId}/${fileId}.pdf`;
+
+      const bucket = this.storage.bucket(this.bucketName);
+      const blob = bucket.file(storageKey);
+
+      await blob.save(fileBuffer, {
+        contentType: 'application/pdf',
+        resumable: false,
+      });
+
+      const document = new this.documentModel({
+        filename: filename,
+        mimeType: 'application/pdf',
+        size: fileBuffer.length,
+        storageKey: storageKey,
+        uploadedBy: userId,
+      });
+
+      const savedDocument = await document.save();
+
+      await this.auditProducerService.logAction(
+        'DOCUMENT_GENERATED',
+        'Document',
+        savedDocument._id.toString(),
+        userId,
+        { filename: filename, templateType },
+      );
+
+      this.eventEmitter.emit('document.generated', {
+        documentId: savedDocument._id,
+        userId,
+      });
+
+      return savedDocument;
+    } catch (error) {
+      console.error('Error generating document:', error);
+      throw new InternalServerErrorException('Failed to generate document');
     }
   }
 }
