@@ -10,4 +10,3 @@ export class GenerateDocumentDto {
   @IsNotEmpty()
   data: Record<string, any>;
 }
-
