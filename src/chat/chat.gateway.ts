@@ -82,6 +82,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     try {
+      void client.join(data.roomId);
       const message = await this.chatService.saveMessage(
         data.roomId,
         user.sub,
@@ -112,6 +113,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     try {
+      void client.join(data.roomId);
       await this.chatService.updateLastRead(data.roomId, user.sub);
       this.server.to(data.roomId).emit('readReceiptUpdated', {
         roomId: data.roomId,
