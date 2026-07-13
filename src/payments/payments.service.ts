@@ -157,6 +157,34 @@ export class PaymentsService {
     }
   }
 
+  async getInvoices(userId: string) {
+    const user = await this.usersService.getUserById(userId);
+    if (!user) throw new NotFoundException('User not found');
+    if (!user.stripeCustomerId) {
+      return [];
+    }
+
+    try {
+      const invoices = await this.stripe.invoices.list({
+        customer: user.stripeCustomerId,
+        limit: 20,
+      });
+
+      return invoices.data.map((invoice) => ({
+        id: invoice.id,
+        amountPaid: invoice.amount_paid / 100, // Convert from cents to dollars
+        status: invoice.status,
+        created: invoice.created,
+        hostedInvoiceUrl: invoice.hosted_invoice_url,
+        invoicePdf: invoice.invoice_pdf,
+      }));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.error(`Error retrieving invoices: ${message}`);
+      throw new InternalServerErrorException('Failed to retrieve invoices');
+    }
+  }
+
   async handleWebhook(signature: string, payload: Buffer) {
     const webhookSecret = this.configService.get<string>(
       'STRIPE_WEBHOOK_SECRET',

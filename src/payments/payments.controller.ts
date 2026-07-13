@@ -62,6 +62,12 @@ export class PaymentsController {
     return this.paymentsService.getSubscriptionDetails(req.user.sub);
   }
 
+  @UseGuards(AuthGuard)
+  @Get('invoices')
+  async getInvoices(@Req() req: RequestWithUser) {
+    return this.paymentsService.getInvoices(req.user.sub);
+  }
+
   @Post('webhook')
   async handleWebhook(
     @Headers('stripe-signature') signature: string,
