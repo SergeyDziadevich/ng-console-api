@@ -174,6 +174,12 @@ export class UsersService {
     return this.userModel.findOne({ email }).exec();
   }
 
+  findByStripeCustomerId(
+    stripeCustomerId: string,
+  ): Promise<HydratedDocument<User> | null> {
+    return this.userModel.findOne({ stripeCustomerId }).exec();
+  }
+
   updateTwoFactor(
     id: string,
     data: { twoFactorSecret?: string; isTwoFactorEnabled?: boolean },

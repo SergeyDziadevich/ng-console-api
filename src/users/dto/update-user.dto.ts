@@ -43,4 +43,20 @@ export class UpdateUserDto {
   @ValidateNested()
   @Type(() => UpdateUserSettingsDto)
   settings?: UpdateUserSettingsDto;
+
+  @IsOptional()
+  @IsString()
+  stripeCustomerId?: string;
+
+  @IsOptional()
+  @IsString()
+  stripeSubscriptionId?: string;
+
+  @IsOptional()
+  @IsString()
+  stripeSubscriptionStatus?: string;
+
+  @IsOptional()
+  @IsString()
+  planId?: string;
 }
