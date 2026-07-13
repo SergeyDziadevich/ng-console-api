@@ -6,7 +6,7 @@ import * as dns from 'dns';
 dns.setDefaultResultOrder('ipv4first');
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   app.enableCors({
     origin: process.env.CORS_ORIGIN,
   });
