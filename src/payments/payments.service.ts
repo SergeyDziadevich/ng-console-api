@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import { UsersService } from '../users/users.service';
 import { AuthService } from '../auth/auth.service';
+import { ProducerService } from '../kafka/producer.service';
 
 @Injectable()
 export class PaymentsService {
@@ -18,6 +19,7 @@ export class PaymentsService {
     private configService: ConfigService,
     private usersService: UsersService,
     private authService: AuthService,
+    private producerService: ProducerService,
   ) {
     const secretKey =
       this.configService.get<string>('STRIPE_SECRET_KEY') || 'sk_test_mock';
@@ -185,11 +187,30 @@ export class PaymentsService {
         const priceId = session.metadata?.priceId;
         const subscriptionId = session.subscription as string;
         if (userId && subscriptionId) {
-          await this.usersService.updateUser(userId, {
-            stripeSubscriptionId: subscriptionId,
-            stripeSubscriptionStatus: 'active',
-            planId: priceId,
-          });
+          const user = await this.usersService.getUserById(userId);
+          if (user) {
+            await this.usersService.updateUser(userId, {
+              stripeSubscriptionId: subscriptionId,
+              stripeSubscriptionStatus: 'active',
+              planId: priceId,
+            });
+
+            const planName =
+              priceId === 'price_1Tsh4Y3C6FGO2xjMaTpgehz2' ? 'Premium' : 'Pro';
+            await this.producerService.produce({
+              topic: 'subscription.activated',
+              messages: [
+                {
+                  value: JSON.stringify({
+                    email: user.email,
+                    name: user.username,
+                    planName,
+                    manageLink: 'http://localhost:4200/payments/subscriptions',
+                  }),
+                },
+              ],
+            });
+          }
         }
         break;
       }
