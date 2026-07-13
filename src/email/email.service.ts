@@ -20,7 +20,13 @@ export class EmailService implements OnModuleInit {
   async onModuleInit() {
     await this.consumerService.consume(
       'email-consumer-group',
-      { topics: ['email.notification', 'user.created'] },
+      {
+        topics: [
+          'email.notification',
+          'user.created',
+          'subscription.activated',
+        ],
+      },
       {
         eachMessage: async ({ topic, message }) => {
           if (message.value) {
@@ -39,6 +45,14 @@ export class EmailService implements OnModuleInit {
                 name: string;
               };
               await this.sendNewUserEmail(data);
+            } else if (topic === 'subscription.activated') {
+              const data = JSON.parse(message.value.toString()) as {
+                email: string;
+                name: string;
+                planName: string;
+                manageLink: string;
+              };
+              await this.sendSubscriptionActivatedEmail(data);
             }
           }
         },
@@ -97,6 +111,24 @@ export class EmailService implements OnModuleInit {
       'New Notification',
       'notification', // Corresponds to notification.hbs
       { name, message },
+    );
+  }
+
+  async sendSubscriptionActivatedEmail(data: {
+    email: string;
+    name: string;
+    planName: string;
+    manageLink: string;
+  }) {
+    await this.sendEmail(
+      data.email,
+      `Welcome to your ${data.planName} Plan!`,
+      'subscription-activated',
+      {
+        name: data.name,
+        planName: data.planName,
+        manageLink: data.manageLink,
+      },
     );
   }
 }
