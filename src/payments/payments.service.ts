@@ -77,27 +77,62 @@ export class PaymentsService {
         });
       }
 
-      const session = await this.stripe.checkout.sessions.create({
+      let actualPriceId = priceId;
+      if (priceId.startsWith('prod_')) {
+        const product = await this.stripe.products.retrieve(priceId);
+        if (typeof product.default_price === 'string') {
+          actualPriceId = product.default_price;
+        } else if (product.default_price && 'id' in product.default_price) {
+          actualPriceId = product.default_price.id;
+        } else {
+          throw new InternalServerErrorException(
+            'Product has no default price configured',
+          );
+        }
+      }
+
+      const price = await this.stripe.prices.retrieve(actualPriceId);
+      const productId =
+        typeof price.product === 'string' ? price.product : price.product.id;
+
+      const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = {
+        quantity: 1,
+      };
+      if (price.type === 'recurring') {
+        lineItem.price = actualPriceId;
+      } else {
+        lineItem.price_data = {
+          currency: price.currency,
+          product: productId,
+          recurring: { interval: 'month' },
+          unit_amount: price.unit_amount || 0,
+        };
+      }
+
+      const sessionConfig: Stripe.Checkout.SessionCreateParams = {
         customer: customerId,
         payment_method_types: ['card'],
-        line_items: [
-          {
-            price: priceId,
-            quantity: 1,
-          },
-        ],
+        line_items: [lineItem],
         mode: 'subscription',
         success_url: successUrl,
         cancel_url: cancelUrl,
-        metadata: { userId: user._id.toString(), priceId },
-      });
+        metadata: { userId: user._id.toString(), priceId: actualPriceId },
+      };
+
+      if (productId === 'prod_UsbPH1vWd8WShB') {
+        sessionConfig.subscription_data = {
+          trial_period_days: 5,
+        };
+      }
+
+      const session = await this.stripe.checkout.sessions.create(sessionConfig);
 
       return { url: session.url };
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       this.logger.error(`Stripe error: ${message}`);
       throw new InternalServerErrorException(
-        'Failed to create checkout session',
+        `Failed to create checkout session: ${message}`,
       );
     }
   }
@@ -147,6 +182,8 @@ export class PaymentsService {
           Number((subscription as Record<string, any>)['current_period_end']) ||
           0,
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        trialStart: subscription.trial_start || null,
+        trialEnd: subscription.trial_end || null,
       };
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
@@ -233,7 +270,7 @@ export class PaymentsService {
                     email: user.email,
                     name: user.username,
                     planName,
-                    manageLink: 'http://localhost:4200/payments/subscriptions',
+                    manageLink: `${process.env.FRONTEND_URL || 'http://localhost:4200'}/payments/subscriptions`,
                   }),
                 },
               ],
