@@ -13,4 +13,5 @@ export interface JwtPayload {
   displayName: string;
   avatarUrl: string;
   role: Role;
+  planId?: string;
 }

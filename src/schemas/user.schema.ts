@@ -50,6 +50,22 @@ export class User {
 
   @Prop({ default: false })
   isTwoFactorEnabled: boolean;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  stripeCustomerId?: string;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  stripeSubscriptionId?: string;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  stripeSubscriptionStatus?: string;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  planId?: string;
 }
 
 export type UserDocument = User & mongoose.Document;

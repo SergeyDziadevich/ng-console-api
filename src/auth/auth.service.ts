@@ -44,6 +44,7 @@ export class AuthService {
       email: user.email,
       displayName: user.displayName,
       role: user.role,
+      planId: user.planId,
     };
     return {
       access_token: await this.jwtService.signAsync(payload),
@@ -90,6 +91,7 @@ export class AuthService {
         email: user.email,
         displayName: user.displayName,
         role: user.role,
+        planId: user.planId,
       };
       return {
         access_token: await this.jwtService.signAsync(jwtPayload),
@@ -136,6 +138,7 @@ export class AuthService {
       email: user.email,
       displayName: user.displayName,
       role: user.role,
+      planId: user.planId,
     };
     return {
       access_token: await this.jwtService.signAsync(finalPayload),
@@ -170,5 +173,25 @@ export class AuthService {
     await this.usersService.updateTwoFactor(userId, {
       isTwoFactorEnabled: true,
     });
+  }
+
+  async refreshToken(userId: string): Promise<AuthResponse> {
+    const user = await this.usersService.getUserById(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const payload = {
+      sub: user._id,
+      username: user.username,
+      email: user.email,
+      displayName: user.displayName,
+      role: user.role,
+      planId: user.planId,
+    };
+
+    return {
+      access_token: await this.jwtService.signAsync(payload),
+    };
   }
 }
