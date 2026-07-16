@@ -10,6 +10,12 @@ import { UsersService } from '../users/users.service';
 import { AuthService } from '../auth/auth.service';
 import { ProducerService } from '../kafka/producer.service';
 
+interface StripeSubscriptionWithPeriod {
+  current_period_start: number;
+  current_period_end: number;
+  start_date: number;
+}
+
 @Injectable()
 export class PaymentsService {
   private stripe: Stripe;
@@ -138,13 +144,13 @@ export class PaymentsService {
   }
 
   async createPortalSession(userId: string, returnUrl: string) {
-    try {
-      const user = await this.usersService.getUserById(userId);
-      if (!user) throw new NotFoundException('User not found');
-      if (!user.stripeCustomerId) {
-        throw new NotFoundException('Stripe customer not found');
-      }
+    const user = await this.usersService.getUserById(userId);
+    if (!user) throw new NotFoundException('User not found');
+    if (!user.stripeCustomerId) {
+      throw new NotFoundException('Stripe customer not found');
+    }
 
+    try {
       const portalSession = await this.stripe.billingPortal.sessions.create({
         customer: user.stripeCustomerId,
         return_url: returnUrl,
@@ -170,17 +176,24 @@ export class PaymentsService {
         user.stripeSubscriptionId,
       );
 
+      const productId =
+        typeof subscription.items?.data[0]?.price?.product === 'string'
+          ? subscription.items.data[0].price.product
+          : subscription.items?.data[0]?.price?.product?.id || user.planId;
+
       return {
         status: subscription.status,
+        productId: productId,
 
         currentPeriodStart:
-          Number(
-            (subscription as Record<string, any>)['current_period_start'],
-          ) || 0,
-
-        currentPeriodEnd:
-          Number((subscription as Record<string, any>)['current_period_end']) ||
+          (subscription as unknown as StripeSubscriptionWithPeriod)
+            .current_period_start ||
+          (subscription as unknown as StripeSubscriptionWithPeriod)
+            .start_date ||
           0,
+        currentPeriodEnd:
+          (subscription as unknown as StripeSubscriptionWithPeriod)
+            .current_period_end || 0,
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
         trialStart: subscription.trial_start || null,
         trialEnd: subscription.trial_end || null,
