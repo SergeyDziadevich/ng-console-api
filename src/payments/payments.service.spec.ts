@@ -112,8 +112,7 @@ describe('PaymentsService', () => {
     authService = module.get(AuthService);
 
     // Inject mock stripe client
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (service as any).stripe = mockStripe;
+    Object.assign(service, { stripe: mockStripe });
 
     jest.clearAllMocks();
   });
@@ -128,7 +127,7 @@ describe('PaymentsService', () => {
     it('should return subscription details with mapped period fields', async () => {
       usersService.getUserById.mockResolvedValue(mockUser as never);
       mockStripe.subscriptions.retrieve.mockResolvedValue(
-        mockStripeSubscription as never,
+        mockStripeSubscription,
       );
 
       const result = await service.getSubscriptionDetails('user-id-1');
@@ -150,7 +149,7 @@ describe('PaymentsService', () => {
         ...mockStripeSubscription,
         current_period_start: 0,
         start_date: 1699000000,
-      } as never);
+      });
 
       const result = await service.getSubscriptionDetails('user-id-1');
 
@@ -163,7 +162,7 @@ describe('PaymentsService', () => {
         ...mockStripeSubscription,
         current_period_start: 0,
         start_date: 0,
-      } as never);
+      });
 
       const result = await service.getSubscriptionDetails('user-id-1');
 
@@ -175,7 +174,7 @@ describe('PaymentsService', () => {
       mockStripe.subscriptions.retrieve.mockResolvedValue({
         ...mockStripeSubscription,
         items: { data: [{ price: { product: null } }] },
-      } as never);
+      });
 
       const result = await service.getSubscriptionDetails('user-id-1');
 
@@ -183,11 +182,11 @@ describe('PaymentsService', () => {
     });
 
     it('should throw NotFoundException when user not found', async () => {
-      usersService.getUserById.mockResolvedValue(null as never);
+      usersService.getUserById.mockResolvedValue(null);
 
-      await expect(
-        service.getSubscriptionDetails('user-id-1'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.getSubscriptionDetails('user-id-1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException when user has no subscription', async () => {
@@ -196,9 +195,9 @@ describe('PaymentsService', () => {
         stripeSubscriptionId: null,
       } as never);
 
-      await expect(
-        service.getSubscriptionDetails('user-id-1'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.getSubscriptionDetails('user-id-1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw InternalServerErrorException when Stripe call fails', async () => {
@@ -207,9 +206,9 @@ describe('PaymentsService', () => {
         new Error('Stripe error'),
       );
 
-      await expect(
-        service.getSubscriptionDetails('user-id-1'),
-      ).rejects.toThrow(InternalServerErrorException);
+      await expect(service.getSubscriptionDetails('user-id-1')).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
   });
 
@@ -229,7 +228,7 @@ describe('PaymentsService', () => {
             invoice_pdf: 'https://invoice.pdf',
           },
         ],
-      } as never);
+      });
 
       const result = await service.getInvoices('user-id-1');
 
@@ -258,7 +257,7 @@ describe('PaymentsService', () => {
     });
 
     it('should throw NotFoundException when user not found', async () => {
-      usersService.getUserById.mockResolvedValue(null as never);
+      usersService.getUserById.mockResolvedValue(null);
 
       await expect(service.getInvoices('user-id-1')).rejects.toThrow(
         NotFoundException,
@@ -282,7 +281,7 @@ describe('PaymentsService', () => {
       usersService.getUserById.mockResolvedValue(mockUser as never);
       mockStripe.billingPortal.sessions.create.mockResolvedValue({
         url: 'https://billing.stripe.com/session',
-      } as never);
+      });
 
       const result = await service.createPortalSession(
         'user-id-1',
@@ -297,7 +296,7 @@ describe('PaymentsService', () => {
     });
 
     it('should throw NotFoundException when user not found', async () => {
-      usersService.getUserById.mockResolvedValue(null as never);
+      usersService.getUserById.mockResolvedValue(null);
 
       await expect(
         service.createPortalSession('user-id-1', 'https://return.url'),
@@ -324,7 +323,7 @@ describe('PaymentsService', () => {
         payment_status: 'paid',
         metadata: { userId: 'user-id-1', priceId: 'price_mock' },
         subscription: 'sub_new123',
-      } as never);
+      });
       authService.refreshToken.mockResolvedValue({
         accessToken: 'new_token',
       } as never);
@@ -344,7 +343,7 @@ describe('PaymentsService', () => {
         payment_status: 'unpaid',
         metadata: { userId: 'user-id-1' },
         subscription: 'sub_new123',
-      } as never);
+      });
       authService.refreshToken.mockResolvedValue({
         accessToken: 'token',
       } as never);
