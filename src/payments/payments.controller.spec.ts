@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/unbound-method, @typescript-eslint/no-unnecessary-type-assertion */
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { PaymentsController } from './payments.controller';
