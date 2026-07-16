@@ -10,6 +10,12 @@ import { UsersService } from '../users/users.service';
 import { AuthService } from '../auth/auth.service';
 import { ProducerService } from '../kafka/producer.service';
 
+interface StripeSubscriptionWithPeriod {
+  current_period_start: number;
+  current_period_end: number;
+  start_date: number;
+}
+
 @Injectable()
 export class PaymentsService {
   private stripe: Stripe;
@@ -138,13 +144,13 @@ export class PaymentsService {
   }
 
   async createPortalSession(userId: string, returnUrl: string) {
-    try {
-      const user = await this.usersService.getUserById(userId);
-      if (!user) throw new NotFoundException('User not found');
-      if (!user.stripeCustomerId) {
-        throw new NotFoundException('Stripe customer not found');
-      }
+    const user = await this.usersService.getUserById(userId);
+    if (!user) throw new NotFoundException('User not found');
+    if (!user.stripeCustomerId) {
+      throw new NotFoundException('Stripe customer not found');
+    }
 
+    try {
       const portalSession = await this.stripe.billingPortal.sessions.create({
         customer: user.stripeCustomerId,
         return_url: returnUrl,
@@ -180,21 +186,13 @@ export class PaymentsService {
         productId: productId,
 
         currentPeriodStart:
-          (
-            subscription as unknown as {
-              current_period_start: number;
-              start_date: number;
-            }
-          ).current_period_start ||
-          (
-            subscription as unknown as {
-              current_period_start: number;
-              start_date: number;
-            }
-          ).start_date ||
+          (subscription as unknown as StripeSubscriptionWithPeriod)
+            .current_period_start ||
+          (subscription as unknown as StripeSubscriptionWithPeriod)
+            .start_date ||
           0,
         currentPeriodEnd:
-          (subscription as unknown as { current_period_end: number })
+          (subscription as unknown as StripeSubscriptionWithPeriod)
             .current_period_end || 0,
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
         trialStart: subscription.trial_start || null,
