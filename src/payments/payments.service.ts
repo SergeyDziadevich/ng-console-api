@@ -170,17 +170,32 @@ export class PaymentsService {
         user.stripeSubscriptionId,
       );
 
+      const productId =
+        typeof subscription.items?.data[0]?.price?.product === 'string'
+          ? subscription.items.data[0].price.product
+          : subscription.items?.data[0]?.price?.product?.id || user.planId;
+
       return {
         status: subscription.status,
+        productId: productId,
 
         currentPeriodStart:
-          Number(
-            (subscription as Record<string, any>)['current_period_start'],
-          ) || 0,
-
-        currentPeriodEnd:
-          Number((subscription as Record<string, any>)['current_period_end']) ||
+          (
+            subscription as unknown as {
+              current_period_start: number;
+              start_date: number;
+            }
+          ).current_period_start ||
+          (
+            subscription as unknown as {
+              current_period_start: number;
+              start_date: number;
+            }
+          ).start_date ||
           0,
+        currentPeriodEnd:
+          (subscription as unknown as { current_period_end: number })
+            .current_period_end || 0,
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
         trialStart: subscription.trial_start || null,
         trialEnd: subscription.trial_end || null,
