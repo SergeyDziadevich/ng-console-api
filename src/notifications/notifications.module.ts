@@ -13,6 +13,10 @@ import {
   NotificationReadStateSchema,
 } from '../schemas/notification-read-state.schema';
 import { User, UserSchema } from '../schemas/user.schema';
+import {
+  UserSettings,
+  UserSettingsSchema,
+} from '../schemas/user-settings.schema';
 
 @Module({
   imports: [
@@ -21,6 +25,7 @@ import { User, UserSchema } from '../schemas/user.schema';
       { name: Notification.name, schema: NotificationSchema },
       { name: NotificationReadState.name, schema: NotificationReadStateSchema },
       { name: User.name, schema: UserSchema },
+      { name: UserSettings.name, schema: UserSettingsSchema },
     ]),
   ],
   controllers: [NotificationsController],

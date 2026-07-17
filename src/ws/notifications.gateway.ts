@@ -13,6 +13,7 @@ export interface Notification {
   ts: number;
   isSystem?: boolean;
   type?: string;
+  userId?: string;
 }
 
 @WebSocketGateway({ connectionStateRecovery: {} })

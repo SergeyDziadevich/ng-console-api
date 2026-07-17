@@ -92,8 +92,32 @@ export class TicketsService {
     authorId?: string,
   ): Promise<Ticket> {
     const ticket = await this.findOne(id);
+    const oldAssignedPersonId = ticket.assignedPersonId;
+    
     this.ticketsRepository.merge(ticket, updateTicketDto);
     const saved = await this.ticketsRepository.save(ticket);
+
+    if (
+      saved.assignedPersonId &&
+      saved.assignedPersonId !== oldAssignedPersonId
+    ) {
+      this.producerService
+        .produce({
+          topic: 'ticket.assigned',
+          messages: [
+            {
+              value: JSON.stringify({
+                ticketId: saved.id,
+                title: saved.title,
+                userId: saved.assignedPersonId,
+              }),
+            },
+          ],
+        })
+        .catch((e) =>
+          console.error('Failed to produce ticket assigned message:', e),
+        );
+    }
 
     this.auditProducerService
       .logAction(
