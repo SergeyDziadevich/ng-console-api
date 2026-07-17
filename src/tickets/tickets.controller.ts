@@ -46,7 +46,7 @@ export class TicketsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.ticketsService.findOne(+id);
+    return this.ticketsService.findOne(id);
   }
 
   @Put(':id')
@@ -58,7 +58,7 @@ export class TicketsController {
     const author = req.user
       ? `${req.user.username || req.user.email} (${req.user.sub})`
       : undefined;
-    return this.ticketsService.update(+id, updateTicketDto, author);
+    return this.ticketsService.update(id, updateTicketDto, author);
   }
 
   @Delete(':id')
@@ -71,7 +71,7 @@ export class TicketsController {
     const author = req.user
       ? `${req.user.username || req.user.email} (${req.user.sub})`
       : undefined;
-    return this.ticketsService.remove(+id, author);
+    return this.ticketsService.remove(id, author);
   }
 
   @Post(':id/comments')
@@ -84,6 +84,6 @@ export class TicketsController {
       createCommentDto.authorId =
         req.user.displayName || req.user.username || 'Unknown User';
     }
-    return this.ticketsService.addComment(+id, createCommentDto);
+    return this.ticketsService.addComment(id, createCommentDto);
   }
 }
