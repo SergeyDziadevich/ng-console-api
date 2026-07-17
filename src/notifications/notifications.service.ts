@@ -21,6 +21,7 @@ import { User, UserDocument } from '../schemas/user.schema';
 export enum SystemEvents {
   USER_CREATED = 'user.created',
   EMAIL_NOTIFICATION = 'email.notification',
+  TICKET_ASSIGNED = 'ticket.assigned',
 }
 
 @Injectable()
@@ -42,15 +43,25 @@ export class NotificationsService implements OnModuleInit {
       'notifications-system-group',
       { topics: Object.values(SystemEvents) },
       {
-        eachMessage: ({ message }) => {
+        eachMessage: async ({ topic, message }) => {
           if (message.value) {
+            if (topic === SystemEvents.TICKET_ASSIGNED) {
+              const data = JSON.parse(message.value.toString());
+              const frontendUrl = process.env.FRONTEND_URL || process.env.CORS_ORIGIN || 'http://localhost:4200';
+              await this.send({
+                title: 'Ticket Assigned',
+                body: `Ticket "${data.title}" was assigned to you.`,
+                type: 'info',
+                userId: data.userId,
+                link: `${frontendUrl}/tickets/${data.ticketId}`,
+              });
+            }
             // Kafka events are no longer sent to the UI as notifications
             // await this.sendSystemNotification(
             //   `Kafka Event [${topic}]`,
             //   message.value.toString(),
             // );
           }
-          return Promise.resolve();
         },
       },
     );
@@ -61,6 +72,7 @@ export class NotificationsService implements OnModuleInit {
     body: string;
     type?: string;
     userId?: string;
+    link?: string;
   }) {
     const notification: WsNotification = {
       id: randomUUID(),
@@ -69,6 +81,7 @@ export class NotificationsService implements OnModuleInit {
       ts: Date.now(),
       isSystem: false,
       type: input.type,
+      userId: input.userId,
     };
 
     const createdNotification = await this.notificationModel.create({
@@ -99,6 +112,7 @@ export class NotificationsService implements OnModuleInit {
                 to: user.email,
                 name: user.username,
                 message: input.body,
+                link: input.link,
               }),
             },
           ],
