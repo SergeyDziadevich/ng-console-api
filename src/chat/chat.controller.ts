@@ -2,15 +2,19 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
+  Delete,
   Body,
   Param,
   UseGuards,
   Request,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ChatService, RoomDetails, EnhancedMessage } from './chat.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { JwtPayload } from '../auth/models/auth.interface';
 import { Request as ExpressRequest } from 'express';
+import { Role } from '../users/enums/role.enum';
 
 interface AuthenticatedRequest extends ExpressRequest {
   user: JwtPayload;
@@ -57,5 +61,32 @@ export class ChatController {
     @Param('roomId') roomId: string,
   ): Promise<EnhancedMessage[]> {
     return this.chatService.getMessagesForRoom(roomId, req.user.sub);
+  }
+
+  @Delete('rooms/:roomId')
+  deleteRoom(
+    @Request() req: AuthenticatedRequest,
+    @Param('roomId') roomId: string,
+  ): Promise<void> {
+    if (req.user.role !== Role.Admin && req.user.role !== Role.Moderator) {
+      throw new ForbiddenException(
+        'Only admins and moderators can delete rooms',
+      );
+    }
+    return this.chatService.deleteRoom(roomId);
+  }
+
+  @Patch('rooms/:roomId')
+  renameRoom(
+    @Request() req: AuthenticatedRequest,
+    @Param('roomId') roomId: string,
+    @Body() body: { name: string },
+  ): Promise<RoomDetails> {
+    if (req.user.role !== Role.Admin && req.user.role !== Role.Moderator) {
+      throw new ForbiddenException(
+        'Only admins and moderators can rename rooms',
+      );
+    }
+    return this.chatService.renameRoom(roomId, body.name);
   }
 }

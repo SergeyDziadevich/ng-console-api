@@ -7,6 +7,7 @@ import { ProducerService } from '../kafka/producer.service';
 import {
   NotFoundException,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 
 const mockUser = {
@@ -75,6 +76,7 @@ describe('PaymentsService', () => {
   };
 
   beforeEach(async () => {
+    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PaymentsService,
