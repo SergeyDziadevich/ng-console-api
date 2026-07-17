@@ -194,6 +194,25 @@ export class ChatService {
     }
   }
 
+  async deleteRoom(roomId: string): Promise<void> {
+    const room = await this.roomRepository.findOne({ where: { id: roomId } });
+    if (!room) throw new NotFoundException('Room not found');
+    await this.memberRepository.delete({ roomId });
+    await this.messageRepository.delete({ roomId });
+    await this.roomRepository.delete({ id: roomId });
+  }
+
+  async renameRoom(roomId: string, name: string): Promise<RoomDetails> {
+    const room = await this.roomRepository.findOne({
+      where: { id: roomId },
+      relations: { members: true },
+    });
+    if (!room) throw new NotFoundException('Room not found');
+    room.name = name;
+    await this.roomRepository.save(room);
+    return this.getRoomDetails(roomId);
+  }
+
   async getRoomDetails(roomId: string): Promise<RoomDetails> {
     const room = await this.roomRepository.findOne({
       where: { id: roomId },
