@@ -25,8 +25,8 @@ export enum TicketPriority {
 
 @Entity()
 export class Ticket {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   title: string;

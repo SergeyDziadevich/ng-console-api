@@ -1,7 +1,7 @@
 import { z } from 'genkit';
 
 export const bulkUpdateTicketsInputSchema = z.object({
-  ids: z.array(z.number()),
+  ids: z.array(z.string()),
   status: z.enum(['todo', 'in progress', 'done']),
 });
 export const bulkUpdateTicketsOutputSchema = z.object({
