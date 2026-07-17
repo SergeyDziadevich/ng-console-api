@@ -3,7 +3,7 @@ import { z } from 'genkit';
 export const getTicketsInputSchema = z.object({});
 export const getTicketsOutputSchema = z.array(
   z.object({
-    id: z.number(),
+    id: z.string(),
     title: z.string(),
     description: z.string(),
     status: z.string(),

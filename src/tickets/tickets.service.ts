@@ -75,7 +75,7 @@ export class TicketsService {
     });
   }
 
-  async findOne(id: number): Promise<Ticket> {
+  async findOne(id: string): Promise<Ticket> {
     const ticket = await this.ticketsRepository.findOne({
       where: { id },
       relations: { comments: true },
@@ -87,7 +87,7 @@ export class TicketsService {
   }
 
   async update(
-    id: number,
+    id: string,
     updateTicketDto: UpdateTicketDto,
     authorId?: string,
   ): Promise<Ticket> {
@@ -108,7 +108,7 @@ export class TicketsService {
     return saved;
   }
 
-  async remove(id: number, authorId?: string): Promise<void> {
+  async remove(id: string, authorId?: string): Promise<void> {
     const ticket = await this.findOne(id);
     await this.ticketsRepository.remove(ticket);
 
@@ -124,10 +124,10 @@ export class TicketsService {
   }
 
   async addComment(
-    ticketId: number,
+    id: string,
     createCommentDto: CreateCommentDto,
   ): Promise<Comment> {
-    const ticket = await this.findOne(ticketId);
+    const ticket = await this.findOne(id);
     const comment = this.commentsRepository.create({
       ...createCommentDto,
       ticket,
@@ -136,7 +136,7 @@ export class TicketsService {
   }
 
   async bulkUpdateStatus(
-    ids: number[],
+    ids: string[],
     status: TicketStatus,
     authorId?: string,
   ): Promise<void> {
