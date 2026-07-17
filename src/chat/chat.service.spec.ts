@@ -102,11 +102,6 @@ describe('ChatService', () => {
         name: 'Old Name',
         members: [{ userId: 'user-1' }],
       };
-      const enrichedRoom = {
-        id: roomId,
-        name: newName,
-        members: [{ userId: 'user-1', username: 'user1' }],
-      };
 
       roomRepoMock.findOne.mockResolvedValueOnce(mockRoom);
       roomRepoMock.save.mockResolvedValue({ ...mockRoom, name: newName });
