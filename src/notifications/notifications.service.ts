@@ -45,9 +45,16 @@ export class NotificationsService implements OnModuleInit {
       {
         eachMessage: async ({ topic, message }) => {
           if (message.value) {
-            if (topic === SystemEvents.TICKET_ASSIGNED) {
-              const data = JSON.parse(message.value.toString());
-              const frontendUrl = process.env.FRONTEND_URL || process.env.CORS_ORIGIN || 'http://localhost:4200';
+            if (topic === (SystemEvents.TICKET_ASSIGNED as string)) {
+              const data = JSON.parse(message.value.toString()) as {
+                title: string;
+                userId: string;
+                ticketId: string;
+              };
+              const frontendUrl =
+                process.env.FRONTEND_URL ||
+                process.env.CORS_ORIGIN ||
+                'http://localhost:4200';
               await this.send({
                 title: 'Ticket Assigned',
                 body: `Ticket "${data.title}" was assigned to you.`,
