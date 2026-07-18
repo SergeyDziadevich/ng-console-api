@@ -6,6 +6,7 @@ interface NotificationPayload {
   to: string;
   name: string;
   message: string;
+  link?: string;
 }
 
 @Injectable()
@@ -38,6 +39,7 @@ export class EmailService implements OnModuleInit {
                 data.to,
                 data.name,
                 data.message,
+                data.link,
               );
             } else if (topic === 'user.created') {
               const data = JSON.parse(message.value.toString()) as {
@@ -105,12 +107,12 @@ export class EmailService implements OnModuleInit {
     );
   }
 
-  async sendNotificationEmail(to: string, name: string, message: string) {
+  async sendNotificationEmail(to: string, name: string, message: string, link?: string) {
     await this.sendEmail(
       to,
       'New Notification',
       'notification', // Corresponds to notification.hbs
-      { name, message },
+      { name, message, link },
     );
   }
 

@@ -11,6 +11,11 @@
         <div style="background-color: #f5f5f5; padding: 15px; border-left: 4px solid #2196F3; margin: 20px 0;">
             <strong>{{message}}</strong>
         </div>
+        {{#if link}}
+        <p>
+            <a href="{{link}}" style="display: inline-block; padding: 10px 20px; background-color: #2196F3; color: #ffffff; text-decoration: none; border-radius: 5px;">View Ticket</a>
+        </p>
+        {{/if}}
         <p>Log in to your account to view more details.</p>
         <br>
         <p>Best Regards,</p>
