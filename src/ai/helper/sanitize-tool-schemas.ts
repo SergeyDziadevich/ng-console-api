@@ -62,12 +62,25 @@ export function patchJsonSchema(schema: Record<string, unknown>): void {
  */
 export function sanitizeToolSchemas(tools: ToolAction[]): ToolAction[] {
   for (const tool of tools) {
-    const schema = (
+    const action = (
       tool as unknown as {
-        __action?: { inputJsonSchema?: Record<string, unknown> };
+        __action?: { name?: string; inputJsonSchema?: Record<string, unknown> };
       }
-    ).__action?.inputJsonSchema;
-    if (schema) patchJsonSchema(schema);
+    ).__action;
+
+    if (action?.inputJsonSchema) patchJsonSchema(action.inputJsonSchema);
+
+    // Gemini does not allow dashes in tool names and silently replaces them with underscores.
+    // If the tool name has dashes, we preemptively rename it to use underscores
+    // so Genkit can successfully resolve it when the model calls it back.
+    const originalName = tool.name || action?.name || '';
+    if (originalName.includes('-')) {
+      const newName = originalName.replace(/-/g, '_');
+      Object.defineProperty(tool, 'name', { value: newName });
+      if (action) {
+        action.name = newName;
+      }
+    }
   }
   return tools;
 }
