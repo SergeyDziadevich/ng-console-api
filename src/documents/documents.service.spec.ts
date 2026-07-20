@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DocumentsService } from './documents.service';
+import { AiService } from '../ai/ai.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -111,6 +112,14 @@ describe('DocumentsService', () => {
         {
           provide: AuditProducerService,
           useValue: { logAction: jest.fn().mockResolvedValue(undefined) },
+        },
+        {
+          provide: getModelToken('DocumentChunk'),
+          useValue: {},
+        },
+        {
+          provide: AiService,
+          useValue: { embedText: jest.fn() },
         },
       ],
     }).compile();

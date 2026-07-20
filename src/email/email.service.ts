@@ -107,7 +107,12 @@ export class EmailService implements OnModuleInit {
     );
   }
 
-  async sendNotificationEmail(to: string, name: string, message: string, link?: string) {
+  async sendNotificationEmail(
+    to: string,
+    name: string,
+    message: string,
+    link?: string,
+  ) {
     await this.sendEmail(
       to,
       'New Notification',
