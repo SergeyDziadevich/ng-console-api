@@ -39,6 +39,10 @@ export class Document {
   @Prop({ default: false })
   isSigned?: boolean;
 
+  @Field()
+  @Prop({ default: false })
+  isRagProcessed?: boolean;
+
   @Prop()
   signedAt?: Date;
 

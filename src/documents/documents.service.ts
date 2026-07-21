@@ -11,6 +11,12 @@ import { Storage } from '@google-cloud/storage';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Document, DocumentDocument } from '../schemas/document.schema';
+import {
+  DocumentChunk,
+  DocumentChunkDocument,
+} from '../schemas/document-chunk.schema';
+import { AiService } from '../ai/ai.service';
+import { PDFParse } from 'pdf-parse';
 import * as crypto from 'crypto';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { AuditProducerService } from '../audit/audit-producer.service';
@@ -28,9 +34,12 @@ export class DocumentsService {
 
   constructor(
     @InjectModel(Document.name) private documentModel: Model<DocumentDocument>,
+    @InjectModel(DocumentChunk.name)
+    private documentChunkModel: Model<DocumentChunkDocument>,
     private configService: ConfigService,
     private eventEmitter: EventEmitter2,
     private readonly auditProducerService: AuditProducerService,
+    private readonly aiService: AiService,
   ) {
     this.bucketName = this.configService.get<string>(
       'GCS_BUCKET_NAME',
@@ -90,13 +99,41 @@ export class DocumentsService {
         'Document',
         savedDocument._id.toString(),
         userId,
-        { filename: file.originalname },
+        {
+          filename: file.originalname,
+        },
       );
 
       this.eventEmitter.emit('document.uploaded', {
         documentId: savedDocument._id,
         userId,
       });
+
+      // Extract text and generate embeddings for RAG
+      if (file.mimetype === 'application/pdf') {
+        const parser = new PDFParse({ data: file.buffer });
+        try {
+          const pdfData = await parser.getText();
+          const text = pdfData.text;
+          const chunks = this.chunkText(text, 1000, 200);
+
+          for (const chunk of chunks) {
+            const embedding = await this.aiService.embedText(chunk);
+            const documentChunk = new this.documentChunkModel({
+              documentId: savedDocument._id,
+              text: chunk,
+              embedding: embedding,
+            });
+            await documentChunk.save();
+          }
+          savedDocument.isRagProcessed = true;
+          await savedDocument.save();
+        } catch (e) {
+          console.error('Failed to parse PDF and generate embeddings:', e);
+        } finally {
+          await parser.destroy();
+        }
+      }
 
       return savedDocument;
     } catch (error) {
@@ -204,7 +241,9 @@ export class DocumentsService {
         'Document',
         id,
         userId,
-        { filename: document.filename },
+        {
+          filename: document.filename,
+        },
       );
     } catch (error) {
       console.error('Error deleting file from GCS:', error);
@@ -297,7 +336,9 @@ export class DocumentsService {
         'Document',
         id,
         userId,
-        { filename: document.filename },
+        {
+          filename: document.filename,
+        },
       );
 
       this.eventEmitter.emit('document.signed', {
@@ -379,5 +420,15 @@ export class DocumentsService {
       console.error('Error generating document:', error);
       throw new InternalServerErrorException('Failed to generate document');
     }
+  }
+
+  private chunkText(text: string, chunkSize = 1000, overlap = 200): string[] {
+    const chunks: string[] = [];
+    let i = 0;
+    while (i < text.length) {
+      chunks.push(text.slice(i, i + chunkSize));
+      i += chunkSize - overlap;
+    }
+    return chunks;
   }
 }
