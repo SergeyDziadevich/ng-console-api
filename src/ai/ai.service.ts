@@ -39,8 +39,20 @@ import {
   BULK_UPDATE_TICKETS_TOOL_NAME,
   BULK_UPDATE_TICKETS_TOOL_DESCRIPTION,
 } from './tools/bulk-update-tickets.tool';
-import { HydratedDocument } from 'mongoose';
+import {
+  searchDocumentsInputSchema,
+  searchDocumentsOutputSchema,
+  SEARCH_DOCUMENTS_TOOL_NAME,
+  SEARCH_DOCUMENTS_TOOL_DESCRIPTION,
+} from './tools/search-documents.tool';
+import { HydratedDocument, Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
 import { User } from '../schemas/user.schema';
+import { Document } from '../schemas/document.schema';
+import {
+  DocumentChunk,
+  DocumentChunkDocument,
+} from '../schemas/document-chunk.schema';
 import { Role } from '../users/enums/role.enum';
 import {
   docsDir,
@@ -74,6 +86,10 @@ export class AiService {
     typeof bulkUpdateTicketsInputSchema,
     typeof bulkUpdateTicketsOutputSchema
   >;
+  private searchDocumentsTool: ToolAction<
+    typeof searchDocumentsInputSchema,
+    typeof searchDocumentsOutputSchema
+  >;
 
   constructor(
     private readonly configService: ConfigService,
@@ -81,10 +97,13 @@ export class AiService {
     private readonly postsService: PostsService,
     private readonly ticketsService: TicketsService,
     private readonly auditProducerService: AuditProducerService,
+    @InjectModel(DocumentChunk.name)
+    private documentChunkModel: Model<DocumentChunkDocument>,
   ) {
     const apiKey = this.configService.getOrThrow<string>(
       'GOOGLE_GENAI_API_KEY',
     );
+    //
     this.ai = genkit({ plugins: [googleAI({ apiKey }), retry.plugin()] });
 
     this.weatherTool = this.ai.defineTool(
@@ -100,7 +119,9 @@ export class AiService {
           'AI_Tool',
           GET_WEATHER_TOOL_NAME,
           'AI AGENT',
-          { input },
+          {
+            input,
+          },
         );
         return getWeatherHandler(input);
       },
@@ -119,7 +140,9 @@ export class AiService {
           'AI_Tool',
           GET_USERS_TOOL_NAME,
           'AI AGENT',
-          { input },
+          {
+            input,
+          },
         );
         const users = await this.usersService.getAllUsers();
         return users.map((u) => ({
@@ -146,7 +169,9 @@ export class AiService {
           'AI_Tool',
           GET_POSTS_TOOL_NAME,
           'AI AGENT',
-          { input },
+          {
+            input,
+          },
         );
         const posts = await this.postsService.findAll();
         return posts.map((p) => ({
@@ -170,7 +195,9 @@ export class AiService {
           'AI_Tool',
           GET_TICKETS_TOOL_NAME,
           'AI AGENT',
-          { input },
+          {
+            input,
+          },
         );
         const tickets = await this.ticketsService.findAll();
         return tickets.map((t) => ({
@@ -206,6 +233,50 @@ export class AiService {
         return { success: true };
       },
     );
+
+    this.searchDocumentsTool = this.ai.defineTool(
+      {
+        name: SEARCH_DOCUMENTS_TOOL_NAME,
+        description: SEARCH_DOCUMENTS_TOOL_DESCRIPTION,
+        inputSchema: searchDocumentsInputSchema,
+        outputSchema: searchDocumentsOutputSchema,
+      },
+      async (input) => {
+        await this.auditProducerService.logAction(
+          'AI_AGENT_TOOL_CALL',
+          'AI_Tool',
+          SEARCH_DOCUMENTS_TOOL_NAME,
+          'AI AGENT',
+          { input },
+        );
+
+        const queryEmbedding = await this.embedText(input.query);
+        const allChunks = await this.documentChunkModel
+          .find()
+          .populate('documentId')
+          .exec();
+
+        const scoredChunks = allChunks
+          .filter((chunk) => chunk.documentId)
+          .map((chunk) => {
+            let similarity = 0;
+            for (let i = 0; i < queryEmbedding.length; i++) {
+              similarity += queryEmbedding[i] * (chunk.embedding[i] ?? 0);
+            }
+            const doc =
+              chunk.documentId as unknown as HydratedDocument<Document>;
+            return {
+              id: doc._id.toString(),
+              filename: doc.filename,
+              snippet: chunk.text,
+              similarity,
+            };
+          });
+
+        scoredChunks.sort((a, b) => b.similarity - a.similarity);
+        return scoredChunks.slice(0, 3);
+      },
+    );
   }
 
   private async runGenerate(
@@ -218,6 +289,7 @@ export class AiService {
       this.weatherTool,
       this.postsTool,
       this.ticketsTool,
+      this.searchDocumentsTool,
     ];
     if (isAdmin) {
       tools.push(this.usersTool);
@@ -225,8 +297,8 @@ export class AiService {
     }
 
     const system = isAdmin
-      ? 'When you use the getUsers tool to retrieve user data, always begin your response with exactly: "Here is the list of all users:". When you use the getWeather tool, always return the result as a JSON code block. You can also use bulkUpdateTicketsTool to update ticket statuses since you are an admin.'
-      : 'If the user asks about users, user lists, user data, or anything related to application user management, respond with exactly: "I do not have access to your internal databases, server, or application user management system.". When you use the getWeather tool, always return the result as a JSON code block. You do not have permissions to modify tickets. You can read posts and tickets though.';
+      ? 'When you use the getUsers tool to retrieve user data, always begin your response with exactly: "Here is the list of all users:". When you use the getWeather tool, always return the result as a JSON code block. You can also use bulkUpdateTicketsTool to update ticket statuses since you are an admin. When you use the searchDocuments tool, always format the matched documents as a JSON code block in this exact format: `{"type": "documentWidget", "documents": [{"id": "...", "filename": "...", "snippet": "..."}]}` to trigger the document preview widget in the UI.'
+      : 'If the user asks about users, user lists, user data, or anything related to application user management, respond with exactly: "I do not have access to your internal databases, server, or application user management system.". When you use the getWeather tool, always return the result as a JSON code block. You do not have permissions to modify tickets. You can read posts and tickets though. When you use the searchDocuments tool, always format the matched documents as a JSON code block in this exact format: `{"type": "documentWidget", "documents": [{"id": "...", "filename": "...", "snippet": "..."}]}` to trigger the document preview widget in the UI.';
 
     // Map conversation history to Genkit MessageData format (exclude the last user turn
     // since it is passed as `prompt` directly, keeping history as prior context only).
@@ -236,7 +308,7 @@ export class AiService {
     }));
 
     const intentResponse = await this.ai.generate({
-      model: googleAI.model('googleai/gemini-3.1-flash-lite'),
+      model: googleAI.model('gemini-3.1-flash-lite'),
       prompt: `Classify the user's query as either a 'text' or a 'image' request. Query: "${prompt}"`,
       output: {
         schema: z.object({
@@ -258,7 +330,7 @@ export class AiService {
 
     if (intent === 'text') {
       const { text } = await this.ai.generate({
-        model: googleAI.model('googleai/gemini-3.1-flash-lite'),
+        model: googleAI.model('gemini-3.1-flash-lite'),
         system,
         messages: conversationHistory,
         prompt,
@@ -269,7 +341,7 @@ export class AiService {
       return text;
     } else if (intent === 'image') {
       const imageResponse = await this.ai.generate({
-        model: googleAI.model('gemini-2.5-flash-lite'),
+        model: googleAI.model('gemini-3.1-flash-lite'),
         messages: conversationHistory,
         prompt: prompt,
         output: { format: 'media' },
@@ -283,6 +355,14 @@ export class AiService {
     } else {
       return "Sorry, I couldn't determine how to handle your request.";
     }
+  }
+
+  async embedText(text: string): Promise<number[]> {
+    const response = await this.ai.embed({
+      embedder: googleAI.embedder('gemini-embedding-001'),
+      content: text,
+    });
+    return response[0].embedding;
   }
 
   async generate(
@@ -302,64 +382,108 @@ export class AiService {
       { prompt },
     );
 
-    const response = await this.runGenerate(prompt, messages, role);
+    try {
+      const response = await this.runGenerate(prompt, messages, role);
 
-    await this.auditProducerService.logAction(
-      'AI_ASSISTANT_RESPONSE',
-      'AI_Assistant',
-      'N/A',
-      'AI AGENT',
-      { response },
-    );
+      await this.auditProducerService.logAction(
+        'AI_ASSISTANT_RESPONSE',
+        'AI_Assistant',
+        'N/A',
+        'AI AGENT',
+        { response },
+      );
 
-    return response;
+      return response;
+    } catch (e: unknown) {
+      const errMsg =
+        e instanceof Error
+          ? e.message
+          : typeof e === 'object' && e !== null && 'message' in e
+            ? String((e as Record<string, unknown>).message)
+            : '';
+      if (
+        errMsg &&
+        (errMsg.includes('429') ||
+          errMsg.includes('RESOURCE_EXHAUSTED') ||
+          errMsg.includes('Quota exceeded') ||
+          errMsg.includes('prepayment credits are depleted'))
+      ) {
+        const fallbackMsg =
+          "I'm currently receiving too many requests and have temporarily hit my capacity limit! Please wait about a minute and try asking your question again.";
+
+        await this.auditProducerService.logAction(
+          'AI_ASSISTANT_RESPONSE',
+          'AI_Assistant',
+          'N/A',
+          'AI AGENT',
+          { response: fallbackMsg },
+        );
+
+        return fallbackMsg;
+      }
+      throw e;
+    }
   }
 
   async getFileAnalytics(): Promise<{ text: string; sum: number | null }> {
-    // Retrieve filesystem tools from the host
-    const fsTools = await fsMcpHost.getActiveTools(this.ai);
+    try {
+      // Retrieve filesystem tools from the host
+      const fsTools = await fsMcpHost.getActiveTools(this.ai);
 
-    // Step 1: Use tools to gather analytics (structured output not compatible with function calling)
-    const toolResponse = await this.ai.generate({
-      model: googleAI.model('gemini-2.5-flash-lite'),
-      prompt: `List files in ${docsDir}. Read the content of these files and calculate the total sum of all numeric values found within them. If no numbers are found, state that clearly.`,
-      tools: fsTools,
-      maxTurns: 20,
-    });
+      // Step 1: Use tools to gather analytics (structured output not compatible with function calling)
+      const toolResponse = await this.ai.generate({
+        model: googleAI.model('gemini-3.1-flash-lite'),
+        prompt: `List files in ${docsDir}. Read the content of these files and calculate the total sum of all numeric values found within them. If no numbers are found, state that clearly.`,
+        tools: fsTools,
+        maxTurns: 20,
+      });
 
-    const rawText = toolResponse.text;
+      const rawText = toolResponse.text;
 
-    // Step 2: Structure the gathered result (no tools, so structured output works fine)
-    const structuredResponse = await this.ai.generate({
-      model: googleAI.model('googleai/gemini-3.1-flash-lite'),
-      prompt: `Based on the following analysis result, extract a summary and the total numeric sum. If no sum was found, use null.\n\nAnalysis:\n${rawText}`,
-      output: {
-        schema: z.object({
-          text: z
-            .string()
-            .describe(
-              'A summary of the files found and the analysis performed.',
-            ),
-          sum: z
-            .number()
-            .nullable()
-            .describe(
-              'The total sum of all numbers found in the files, or null if none exist.',
-            ),
-        }),
-      },
-    });
+      // Step 2: Structure the gathered result (no tools, so structured output works fine)
+      const structuredResponse = await this.ai.generate({
+        model: googleAI.model('gemini-3.1-flash-lite'),
+        prompt: `Based on the following analysis result, extract a summary and the total numeric sum. If no sum was found, use null.\n\nAnalysis:\n${rawText}`,
+        output: {
+          schema: z.object({
+            text: z
+              .string()
+              .describe(
+                'A summary of the files found and the analysis performed.',
+              ),
+            sum: z
+              .number()
+              .nullable()
+              .describe(
+                'The total sum of all numbers found in the files, or null if none exist.',
+              ),
+          }),
+        },
+      });
 
-    const output = structuredResponse.output;
+      const output = structuredResponse.output;
 
-    if (!output) {
-      throw new Error(
-        'Failed to generate structured output for file analytics.',
-      );
+      if (!output) {
+        throw new Error(
+          'Failed to generate structured output for file analytics.',
+        );
+      }
+
+      console.log('Analytics Output:', output);
+
+      return output;
+    } catch (e: unknown) {
+      const errMsg =
+        e instanceof Error
+          ? e.message
+          : typeof e === 'object' && e !== null && 'message' in e
+            ? String((e as Record<string, unknown>).message)
+            : '';
+      console.error('File analytics generation failed:', errMsg || String(e));
+      return {
+        text: 'File analytics are currently unavailable due to AI service limits or billing issues.',
+        sum: null,
+      };
     }
-
-    console.log('Analytics Output:', output);
-
-    return output;
   }
 }

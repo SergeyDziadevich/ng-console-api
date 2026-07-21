@@ -36,7 +36,7 @@ A robust NestJS backend application providing the core API for the Cloud Console
 - **Document Storage, Sharing, Signing & Generation:** Secure file uploads to Google Cloud Storage (GCS), public sharing capabilities via generated short links, built-in PDF document signing, and dynamic PDF document generation from templates.
 - **Audit Logging System:** Comprehensive audit trailing for critical user and AI Agent actions, backed by MongoDB and asynchronous Kafka streaming, featuring customizable data retention policies, live WebSocket broadcasts, and filtering.
 - **Real-Time Communication:** Live chat and real-time notifications powered by Socket.IO and Redis Streams.
-- **AI Integration:** AI Assistant capabilities utilizing Firebase Genkit, fully integrated with the audit logging system to track prompts, responses, and tool executions.
+- **AI Integration:** AI Assistant capabilities utilizing Firebase Genkit. Features include Document RAG (Retrieval-Augmented Generation) search via vector embeddings, and full integration with the audit logging system to track prompts, responses, and tool executions.
 - **Message Broker & Asynchronous Processing:** Integrated with Apache Kafka for scalable, decoupled background tasks (e.g., distributing email notifications for support tickets).
 - **Email Service:** Reusable email module for sending notifications and templates via Nodemailer, powered by a Kafka consumer architecture.
 - **Support & Ticketing:** Full ticket management system for user support, utilizing Kafka to trigger asynchronous actions.
