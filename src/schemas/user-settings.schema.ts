@@ -15,6 +15,14 @@ export class UserSettings {
   @Field({ nullable: true })
   @Prop({ required: false })
   receiveSMS?: boolean;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  googleDriveRefreshToken?: string;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  googleDriveSyncEnabled?: boolean;
 }
 
 export const UserSettingsSchema = SchemaFactory.createForClass(UserSettings);
