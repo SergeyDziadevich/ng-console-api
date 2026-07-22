@@ -22,6 +22,7 @@ import { AuditModule } from './audit/audit.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { DocumentsModule } from './documents/documents.module';
 import { PaymentsModule } from './payments/payments.module';
+import { IntegrationsModule } from './integrations/integrations.module';
 
 @Module({
   imports: [
@@ -94,6 +95,7 @@ import { PaymentsModule } from './payments/payments.module';
     PrometheusModule.register(),
     EventEmitterModule.forRoot(),
     PaymentsModule,
+    IntegrationsModule,
   ],
   controllers: [],
   providers: [
