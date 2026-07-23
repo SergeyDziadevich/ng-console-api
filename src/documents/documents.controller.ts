@@ -189,9 +189,14 @@ export class DocumentsController {
 
   @Post(':id/sync/google-drive')
   @UseGuards(AuthGuard)
-  async syncToGoogleDrive(@Param('id') id: string, @Req() req: RequestWithUser) {
-    const webViewLink = await this.documentsService.syncToGoogleDrive(id, req.user.sub);
+  async syncToGoogleDrive(
+    @Param('id') id: string,
+    @Req() req: RequestWithUser,
+  ) {
+    const webViewLink = await this.documentsService.syncToGoogleDrive(
+      id,
+      req.user.sub,
+    );
     return { success: true, webViewLink };
   }
 }
-

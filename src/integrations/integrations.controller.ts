@@ -24,7 +24,10 @@ export class IntegrationsController {
     @Body('code') code: string,
     @Req() req: RequestWithUser,
   ) {
-    await this.integrationsService.handleGoogleDriveCallback(code, req.user.sub);
+    await this.integrationsService.handleGoogleDriveCallback(
+      code,
+      req.user.sub,
+    );
     return { success: true };
   }
 
