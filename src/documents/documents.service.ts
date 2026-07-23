@@ -6,7 +6,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Storage } from '@google-cloud/storage';
 import { google } from 'googleapis';
 import { UsersService } from '../users/users.service';
@@ -200,8 +200,7 @@ export class DocumentsService {
     const document = await this.getDocumentById(id);
 
     if (
-      // eslint-disable-next-line @typescript-eslint/no-base-to-string
-      document.uploadedBy.toString() !== userId &&
+      (document.uploadedBy as Types.ObjectId).toString() !== userId &&
       role !== 'admin' &&
       role !== 'moderator'
     ) {
@@ -264,8 +263,7 @@ export class DocumentsService {
     const document = await this.getDocumentById(id);
 
     if (
-      // eslint-disable-next-line @typescript-eslint/no-base-to-string
-      document.uploadedBy.toString() !== userId &&
+      (document.uploadedBy as Types.ObjectId).toString() !== userId &&
       role !== 'admin' &&
       role !== 'moderator'
     ) {
@@ -438,26 +436,41 @@ export class DocumentsService {
   async syncToGoogleDrive(id: string, userId: string): Promise<string> {
     const document = await this.getDocumentById(id);
 
-    if (document.uploadedBy.toString() !== userId) {
-      throw new ForbiddenException('You do not have permission to sync this document.');
+    if ((document.uploadedBy as Types.ObjectId).toString() !== userId) {
+      throw new ForbiddenException(
+        'You do not have permission to sync this document.',
+      );
     }
 
     const user = await this.usersService.getUserById(userId);
-    if (!user || !user.settings || !user.settings.googleDriveSyncEnabled || !user.settings.googleDriveRefreshToken) {
-      throw new BadRequestException('Google Drive sync is not enabled for this user.');
+    if (
+      !user ||
+      !user.settings ||
+      !user.settings.googleDriveSyncEnabled ||
+      !user.settings.googleDriveRefreshToken
+    ) {
+      throw new BadRequestException(
+        'Google Drive sync is not enabled for this user.',
+      );
     }
 
     const oauth2Client = new google.auth.OAuth2(
-      this.configService.get<string>('GOOGLE_DRIVE_CLIENT_ID', 'dummy_client_id'),
-      this.configService.get<string>('GOOGLE_DRIVE_CLIENT_SECRET', 'dummy_client_secret'),
+      this.configService.get<string>(
+        'GOOGLE_DRIVE_CLIENT_ID',
+        'dummy_client_id',
+      ),
+      this.configService.get<string>(
+        'GOOGLE_DRIVE_CLIENT_SECRET',
+        'dummy_client_secret',
+      ),
     );
-    
+
     oauth2Client.setCredentials({
       refresh_token: user.settings.googleDriveRefreshToken,
     });
 
     const drive = google.drive({ version: 'v3', auth: oauth2Client });
-    
+
     const fileStream = this.getDownloadStream(document.storageKey);
 
     const fileMetadata = {
@@ -474,11 +487,13 @@ export class DocumentsService {
         media: media,
         fields: 'id, webViewLink',
       });
-      
+
       return driveRes.data.id as string;
     } catch (error) {
       console.error('Error syncing to Google Drive:', error);
-      throw new InternalServerErrorException('Failed to sync document to Google Drive');
+      throw new InternalServerErrorException(
+        'Failed to sync document to Google Drive',
+      );
     }
   }
 }
