@@ -22,9 +22,16 @@ jest.mock('googleapis', () => {
 
 describe('IntegrationsService', () => {
   let service: IntegrationsService;
-  let mockUsersService: any;
-  let mockConfigService: any;
-  let mockOAuth2Client: any;
+  let mockUsersService: {
+    updateUser: jest.Mock;
+  };
+  let mockConfigService: {
+    get: jest.Mock;
+  };
+  let mockOAuth2Client: {
+    generateAuthUrl: jest.Mock;
+    getToken: jest.Mock;
+  };
 
   beforeEach(async () => {
     mockUsersService = {
