@@ -48,7 +48,7 @@ describe('IntegrationsService', () => {
     };
 
     // Reset the mock implementation of OAuth2 before each test to capture the instance
-    const MockOAuth2 = google.auth.OAuth2 as jest.Mock;
+    const MockOAuth2 = google.auth.OAuth2 as unknown as jest.Mock;
     MockOAuth2.mockClear();
 
     const module: TestingModule = await Test.createTestingModule({
@@ -61,7 +61,11 @@ describe('IntegrationsService', () => {
 
     service = module.get<IntegrationsService>(IntegrationsService);
     // The service constructor calls new google.auth.OAuth2(), so we can get the instance from the mock
-    mockOAuth2Client = MockOAuth2.mock.results[0].value;
+    mockOAuth2Client = (
+      MockOAuth2.mock.results[0] as {
+        value: { generateAuthUrl: jest.Mock; getToken: jest.Mock };
+      }
+    ).value;
   });
 
   afterEach(() => {
