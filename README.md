@@ -34,6 +34,7 @@ A robust NestJS backend application providing the core API for the Cloud Console
 - **Authentication & Authorization:** Secure user management with JWT, Google OAuth2, Role-based Access Control (RBAC), and Two-Factor Authentication (2FA).
 - **Subscription & Payment Processing:** Fully integrated with Stripe for managing premium plans, verifying checkout sessions, and securely handling Stripe webhooks (utilizing raw body parsing for cryptographic signature verification).
 - **Document Storage, Sharing, Signing & Generation:** Secure file uploads to Google Cloud Storage (GCS), public sharing capabilities via generated short links, built-in PDF document signing, and dynamic PDF document generation from templates.
+- **Google Drive Integration:** Automated Document Backup — Securely connect users to their personal Google Drive accounts using native OAuth2, enabling automated backups and real-time synchronization of all generated documents.
 - **Audit Logging System:** Comprehensive audit trailing for critical user and AI Agent actions, backed by MongoDB and asynchronous Kafka streaming, featuring customizable data retention policies, live WebSocket broadcasts, and filtering.
 - **Real-Time Communication:** Live chat and real-time notifications powered by Socket.IO and Redis Streams.
 - **AI Integration:** AI Assistant capabilities utilizing Firebase Genkit. Features include Document RAG (Retrieval-Augmented Generation) search via vector embeddings, and full integration with the audit logging system to track prompts, responses, and tool executions.
