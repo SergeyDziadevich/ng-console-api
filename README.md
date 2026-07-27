@@ -22,10 +22,11 @@
 [circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
 [circleci-url]: https://circleci.com/gh/nestjs/nest
 
-
 ## Description
 
 A robust NestJS backend application providing the core API for the Cloud Console ecosystem.
+
+![Application Composition Graph](architecture/app-composition-graph.png)
 
 **Frontend Application:** [ng-console](https://github.com/SergeyDziadevich/ng-console)
 
