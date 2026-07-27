@@ -8,8 +8,9 @@ import {
   DocumentChunkSchema,
 } from '../schemas/document-chunk.schema';
 
-import { AuditModule } from '../audit/audit.module';
 import { AiModule } from '../ai/ai.module';
+import { UsersModule } from '../users/users.module';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { AiModule } from '../ai/ai.module';
     ]),
     AuditModule,
     AiModule,
+    UsersModule,
   ],
   controllers: [DocumentsController],
   providers: [DocumentsService],

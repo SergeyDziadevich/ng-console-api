@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DocumentsService } from './documents.service';
 import { AiService } from '../ai/ai.service';
+import { UsersService } from '../users/users.service';
 import { getModelToken } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -120,6 +121,10 @@ describe('DocumentsService', () => {
         {
           provide: AiService,
           useValue: { embedText: jest.fn() },
+        },
+        {
+          provide: UsersService,
+          useValue: { getUserById: jest.fn() },
         },
       ],
     }).compile();

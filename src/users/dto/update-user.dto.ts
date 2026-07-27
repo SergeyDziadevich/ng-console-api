@@ -20,6 +20,14 @@ export class UpdateUserSettingsDto {
   @IsOptional()
   @IsBoolean()
   receiveSMS?: boolean;
+
+  @IsOptional()
+  @IsString()
+  googleDriveRefreshToken?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  googleDriveSyncEnabled?: boolean;
 }
 
 export class UpdateUserDto {

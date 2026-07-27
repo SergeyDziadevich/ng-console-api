@@ -6,8 +6,10 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Storage } from '@google-cloud/storage';
+import { google } from 'googleapis';
+import { UsersService } from '../users/users.service';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Document, DocumentDocument } from '../schemas/document.schema';
@@ -40,6 +42,7 @@ export class DocumentsService {
     private eventEmitter: EventEmitter2,
     private readonly auditProducerService: AuditProducerService,
     private readonly aiService: AiService,
+    private readonly usersService: UsersService,
   ) {
     this.bucketName = this.configService.get<string>(
       'GCS_BUCKET_NAME',
@@ -197,8 +200,7 @@ export class DocumentsService {
     const document = await this.getDocumentById(id);
 
     if (
-      // eslint-disable-next-line @typescript-eslint/no-base-to-string
-      document.uploadedBy.toString() !== userId &&
+      (document.uploadedBy as Types.ObjectId).toString() !== userId &&
       role !== 'admin' &&
       role !== 'moderator'
     ) {
@@ -261,8 +263,7 @@ export class DocumentsService {
     const document = await this.getDocumentById(id);
 
     if (
-      // eslint-disable-next-line @typescript-eslint/no-base-to-string
-      document.uploadedBy.toString() !== userId &&
+      (document.uploadedBy as Types.ObjectId).toString() !== userId &&
       role !== 'admin' &&
       role !== 'moderator'
     ) {
@@ -430,5 +431,69 @@ export class DocumentsService {
       i += chunkSize - overlap;
     }
     return chunks;
+  }
+
+  async syncToGoogleDrive(id: string, userId: string): Promise<string> {
+    const document = await this.getDocumentById(id);
+
+    if ((document.uploadedBy as Types.ObjectId).toString() !== userId) {
+      throw new ForbiddenException(
+        'You do not have permission to sync this document.',
+      );
+    }
+
+    const user = await this.usersService.getUserById(userId);
+    if (
+      !user ||
+      !user.settings ||
+      !user.settings.googleDriveSyncEnabled ||
+      !user.settings.googleDriveRefreshToken
+    ) {
+      throw new BadRequestException(
+        'Google Drive sync is not enabled for this user.',
+      );
+    }
+
+    const oauth2Client = new google.auth.OAuth2(
+      this.configService.get<string>(
+        'GOOGLE_DRIVE_CLIENT_ID',
+        'dummy_client_id',
+      ),
+      this.configService.get<string>(
+        'GOOGLE_DRIVE_CLIENT_SECRET',
+        'dummy_client_secret',
+      ),
+    );
+
+    oauth2Client.setCredentials({
+      refresh_token: user.settings.googleDriveRefreshToken,
+    });
+
+    const drive = google.drive({ version: 'v3', auth: oauth2Client });
+
+    const fileStream = this.getDownloadStream(document.storageKey);
+
+    const fileMetadata = {
+      name: document.filename,
+    };
+    const media = {
+      mimeType: document.mimeType,
+      body: fileStream,
+    };
+
+    try {
+      const driveRes = await drive.files.create({
+        requestBody: fileMetadata,
+        media: media,
+        fields: 'id, webViewLink',
+      });
+
+      return driveRes.data.id as string;
+    } catch (error) {
+      console.error('Error syncing to Google Drive:', error);
+      throw new InternalServerErrorException(
+        'Failed to sync document to Google Drive',
+      );
+    }
   }
 }
