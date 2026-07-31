@@ -42,7 +42,7 @@
     "@nestjs/platform-express": "^11.1.28",
     "@nestjs/platform-socket.io": "^11.1.27",
     "@nestjs/typeorm": "^11.0.3",
-    "@nestjs/websockets": "^11.1.27",
+    "@nestjs/websockets": "^11.1.28",
     "@socket.io/redis-streams-adapter": "^0.3.1",
     "@willsoto/nestjs-prometheus": "^6.1.0",
     "bcrypt": "^6.0.0",
