@@ -214,7 +214,7 @@ describe('DocumentsService', () => {
         _id: 'doc-id',
         uploadedBy: { toString: () => 'user-1' },
         mimeType: 'application/pdf',
-        isSigned: true,
+        status: 'FULLY_SIGNED',
       };
       mockExec.mockResolvedValueOnce(mockDoc);
 
