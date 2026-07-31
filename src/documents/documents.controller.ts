@@ -124,7 +124,7 @@ export class DocumentsController {
     if (!signatureName) {
       throw new ForbiddenException('Signature name is required');
     }
-    const document = await this.documentsService.signExternal(
+    await this.documentsService.signExternal(
       token,
       signatureName,
     );
