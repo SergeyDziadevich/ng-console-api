@@ -120,6 +120,7 @@ export class DocumentsController {
   async signExternalDocument(
     @Param('token') token: string,
     @Body('signatureName') signatureName: string,
+    @Body('signatureImage') signatureImage?: string,
   ) {
     if (!signatureName) {
       throw new ForbiddenException('Signature name is required');
@@ -127,6 +128,7 @@ export class DocumentsController {
     await this.documentsService.signExternal(
       token,
       signatureName,
+      signatureImage
     );
     return { success: true, message: 'Document fully signed' };
   }
