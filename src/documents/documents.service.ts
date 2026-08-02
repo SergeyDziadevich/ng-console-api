@@ -287,7 +287,9 @@ export class DocumentsService {
       document.partyASignatureName = userName;
       document.signedAt = new Date();
     } else {
-       throw new BadRequestException('Document cannot be signed by Party A at this stage.');
+      throw new BadRequestException(
+        'Document cannot be signed by Party A at this stage.',
+      );
     }
 
     const bucket = this.storage.bucket(this.bucketName);
@@ -363,15 +365,23 @@ export class DocumentsService {
     }
   }
 
-  async inviteToSign(id: string, userId: string, externalEmail: string): Promise<void> {
+  async inviteToSign(
+    id: string,
+    userId: string,
+    externalEmail: string,
+  ): Promise<void> {
     const document = await this.getDocumentById(id);
 
     if ((document.uploadedBy as Types.ObjectId).toString() !== userId) {
-      throw new ForbiddenException('You do not have permission to invite signers.');
+      throw new ForbiddenException(
+        'You do not have permission to invite signers.',
+      );
     }
 
     if (document.status !== 'SIGNED_BY_PARTY_A') {
-      throw new BadRequestException('Document must be signed by you first before inviting.');
+      throw new BadRequestException(
+        'Document must be signed by you first before inviting.',
+      );
     }
 
     const token = crypto.randomBytes(32).toString('hex');
@@ -382,25 +392,30 @@ export class DocumentsService {
     document.externalSignatureToken = token;
     document.externalSignatureTokenExpiresAt = expiresAt;
     document.status = 'INVITATION_SENT';
-    
+
     await document.save();
 
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:4200');
+    const frontendUrl = this.configService.get<string>(
+      'FRONTEND_URL',
+      'http://localhost:4200',
+    );
     const signLink = `${frontendUrl}/sign-invoice?token=${token}`;
 
     await this.emailService.sendNotificationEmail(
       externalEmail,
       'External Signer',
       `You have been invited to review and sign a document: ${document.filename}.`,
-      signLink
+      signLink,
     );
   }
 
   async getDocumentByExternalToken(token: string): Promise<DocumentDocument> {
-    const document = await this.documentModel.findOne({
-      externalSignatureToken: token,
-      externalSignatureTokenExpiresAt: { $gt: new Date() },
-    }).exec();
+    const document = await this.documentModel
+      .findOne({
+        externalSignatureToken: token,
+        externalSignatureTokenExpiresAt: { $gt: new Date() },
+      })
+      .exec();
 
     if (!document) {
       throw new NotFoundException('Invalid or expired signature token.');
@@ -408,11 +423,17 @@ export class DocumentsService {
     return document;
   }
 
-  async signExternal(token: string, signatureName: string): Promise<DocumentDocument> {
+  async signExternal(
+    token: string,
+    signatureName: string,
+    signatureImage?: string,
+  ): Promise<DocumentDocument> {
     const document = await this.getDocumentByExternalToken(token);
 
     if (document.status !== 'INVITATION_SENT') {
-      throw new BadRequestException('Document is not pending external signature.');
+      throw new BadRequestException(
+        'Document is not pending external signature.',
+      );
     }
 
     const bucket = this.storage.bucket(this.bucketName);
@@ -437,6 +458,24 @@ export class DocumentsService {
         color: rgb(0, 0.53, 0.71),
       });
 
+      const textWidth = helveticaFont.widthOfTextAtSize(signatureText, 14);
+
+      if (signatureImage) {
+        const base64Data = signatureImage.replace(
+          /^data:image\/png;base64,/,
+          '',
+        );
+        const imageBytes = Buffer.from(base64Data, 'base64');
+        const pngImage = await pdfDoc.embedPng(imageBytes);
+        const pngDims = pngImage.scale(0.25);
+        firstPage.drawImage(pngImage, {
+          x: 50 + textWidth + 15,
+          y: 50, // lower down for Party B
+          width: pngDims.width,
+          height: pngDims.height,
+        });
+      }
+
       const pdfBytes = await pdfDoc.save();
 
       await file.save(Buffer.from(pdfBytes), {
@@ -448,11 +487,11 @@ export class DocumentsService {
       document.status = 'FULLY_SIGNED';
       document.partyBSignatureName = signatureName;
       document.partyBSignedAt = new Date();
-      
+
       // Clear token
       document.externalSignatureToken = undefined;
       document.externalSignatureTokenExpiresAt = undefined;
-      
+
       await document.save();
 
       await this.auditProducerService.logAction(
@@ -460,11 +499,13 @@ export class DocumentsService {
         'Document',
         document._id.toString(),
         'EXTERNAL_USER',
-        { filename: document.filename }
+        { filename: document.filename },
       );
 
       // Email the finalized PDF back to the original uploader
-      const uploader = await this.usersService.getUserById((document.uploadedBy as Types.ObjectId).toString());
+      const uploader = await this.usersService.getUserById(
+        (document.uploadedBy as Types.ObjectId).toString(),
+      );
       if (uploader) {
         await this.emailService.sendNotificationEmail(
           uploader.email,
@@ -476,7 +517,9 @@ export class DocumentsService {
       return document;
     } catch (error) {
       console.error('Error signing external document:', error);
-      throw new InternalServerErrorException('Failed to apply external signature');
+      throw new InternalServerErrorException(
+        'Failed to apply external signature',
+      );
     }
   }
 

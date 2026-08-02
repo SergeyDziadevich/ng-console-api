@@ -22,11 +22,11 @@ describe('Cache (e2e)', () => {
     app = moduleFixture.createNestApplication();
     usersService = moduleFixture.get<UsersService>(UsersService);
     await app.init();
-  });
+  }, 30000);
 
   afterAll(async () => {
     await app.close();
-  });
+  }, 30000);
 
   it('should cache GET /users endpoint', async () => {
     const spy = jest.spyOn(usersService, 'getAllUsers').mockResolvedValue([]);
