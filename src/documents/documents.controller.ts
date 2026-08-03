@@ -196,7 +196,7 @@ export class DocumentsController {
     if (!externalEmail) {
       throw new ForbiddenException('External email is required');
     }
-    await this.documentsService.inviteToSign(id, req.user.sub, externalEmail);
+    await this.documentsService.inviteToSign(id, req.user.sub, req.user.role, externalEmail);
     return { success: true, message: 'Invitation sent' };
   }
 
@@ -263,6 +263,7 @@ export class DocumentsController {
     const webViewLink = await this.documentsService.syncToGoogleDrive(
       id,
       req.user.sub,
+      req.user.role,
     );
     return { success: true, webViewLink };
   }
