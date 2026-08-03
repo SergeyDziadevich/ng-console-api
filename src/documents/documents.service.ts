@@ -384,7 +384,7 @@ export class DocumentsService {
       );
     }
 
-    if (document.status !== 'SIGNED_BY_PARTY_A') {
+    if (document.status !== 'SIGNED_BY_PARTY_A' && document.status !== 'INVITATION_SENT') {
       throw new BadRequestException(
         'Document must be signed by you first before inviting.',
       );
