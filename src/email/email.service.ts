@@ -121,6 +121,19 @@ export class EmailService implements OnModuleInit {
     );
   }
 
+  async sendSignDocumentEmail(
+    to: string,
+    name: string,
+    message: string,
+    link?: string,
+  ) {
+    await this.sendEmail(to, 'Document Signature Request', 'sign-document', {
+      name,
+      message,
+      link,
+    });
+  }
+
   async sendSubscriptionActivatedEmail(data: {
     email: string;
     name: string;

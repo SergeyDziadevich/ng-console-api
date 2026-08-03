@@ -36,15 +36,40 @@ export class Document {
   })
   uploadedBy: User | mongoose.Types.ObjectId;
 
+  @Prop({
+    type: String,
+    enum: ['DRAFT', 'SIGNED_BY_PARTY_A', 'INVITATION_SENT', 'FULLY_SIGNED'],
+    default: 'DRAFT',
+  })
+  status?: string;
+
+  @Prop()
+  externalPartyEmail?: string;
+
+  @Prop({ unique: true, sparse: true })
+  externalSignatureToken?: string;
+
+  @Prop()
+  externalSignatureTokenExpiresAt?: Date;
+
   @Prop({ default: false })
   isSigned?: boolean;
+
+  @Prop()
+  signedAt?: Date;
+
+  @Prop()
+  partyASignatureName?: string;
+
+  @Prop()
+  partyBSignatureName?: string;
+
+  @Prop()
+  partyBSignedAt?: Date;
 
   @Field()
   @Prop({ default: false })
   isRagProcessed?: boolean;
-
-  @Prop()
-  signedAt?: Date;
 
   @Field()
   createdAt: Date;

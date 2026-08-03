@@ -80,6 +80,59 @@ export class DocumentsController {
     );
   }
 
+  @Get('external/:token')
+  async getExternalDocument(@Param('token') token: string) {
+    const document =
+      await this.documentsService.getDocumentByExternalToken(token);
+    // Don't leak too much info, just return what's necessary to show the doc
+    return {
+      _id: document._id,
+      filename: document.filename,
+      partyASignatureName: document.partyASignatureName,
+    };
+  }
+
+  @Get('external/:token/download')
+  async downloadExternalDocument(
+    @Param('token') token: string,
+    @Res() res: Response,
+  ) {
+    const document =
+      await this.documentsService.getDocumentByExternalToken(token);
+    const stream = this.documentsService.getDownloadStream(document.storageKey);
+
+    res.set({
+      'Content-Type': document.mimeType,
+      'Content-Disposition': `attachment; filename="${document.filename}"`,
+    });
+
+    stream.on('error', (err) => {
+      console.error('Stream error:', err);
+      if (!res.headersSent) {
+        res.status(500).send('Error streaming file');
+      }
+    });
+
+    stream.pipe(res);
+  }
+
+  @Post('external/:token/sign')
+  async signExternalDocument(
+    @Param('token') token: string,
+    @Body('signatureName') signatureName: string,
+    @Body('signatureImage') signatureImage?: string,
+  ) {
+    if (!signatureName) {
+      throw new ForbiddenException('Signature name is required');
+    }
+    await this.documentsService.signExternal(
+      token,
+      signatureName,
+      signatureImage
+    );
+    return { success: true, message: 'Document fully signed' };
+  }
+
   @Get(':id')
   @UseGuards(AuthGuard)
   async downloadDocument(
@@ -131,6 +184,20 @@ export class DocumentsController {
       req.user.role,
       signatureImage,
     );
+  }
+
+  @Post(':id/invite')
+  @UseGuards(AuthGuard)
+  async inviteToSign(
+    @Param('id') id: string,
+    @Req() req: RequestWithUser,
+    @Body('email') externalEmail: string,
+  ) {
+    if (!externalEmail) {
+      throw new ForbiddenException('External email is required');
+    }
+    await this.documentsService.inviteToSign(id, req.user.sub, req.user.role, externalEmail);
+    return { success: true, message: 'Invitation sent' };
   }
 
   @Delete(':id')
@@ -196,6 +263,7 @@ export class DocumentsController {
     const webViewLink = await this.documentsService.syncToGoogleDrive(
       id,
       req.user.sub,
+      req.user.role,
     );
     return { success: true, webViewLink };
   }
