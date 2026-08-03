@@ -369,7 +369,7 @@ export class DocumentsService {
   async inviteToSign(
     id: string,
     userId: string,
-    role: string,
+    role: Role,
     externalEmail: string,
   ): Promise<void> {
     const document = await this.getDocumentById(id);
@@ -608,7 +608,7 @@ export class DocumentsService {
     return chunks;
   }
 
-  async syncToGoogleDrive(id: string, userId: string, role?: string): Promise<string> {
+  async syncToGoogleDrive(id: string, userId: string, role?: Role): Promise<string> {
     const document = await this.getDocumentById(id);
 
     if (
