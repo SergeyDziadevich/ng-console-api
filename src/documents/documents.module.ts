@@ -11,6 +11,7 @@ import {
 import { AiModule } from '../ai/ai.module';
 import { UsersModule } from '../users/users.module';
 import { AuditModule } from '../audit/audit.module';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { AuditModule } from '../audit/audit.module';
     AuditModule,
     AiModule,
     UsersModule,
+    EmailModule,
   ],
   controllers: [DocumentsController],
   providers: [DocumentsService],

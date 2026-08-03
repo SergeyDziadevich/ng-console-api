@@ -22,6 +22,8 @@ import { PDFParse } from 'pdf-parse';
 import * as crypto from 'crypto';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { AuditProducerService } from '../audit/audit-producer.service';
+import { EmailService } from '../email/email.service';
+import { Role } from '../users/enums/role.enum';
 import {
   generateInvoicePdf,
   generateContractPdf,
@@ -43,6 +45,7 @@ export class DocumentsService {
     private readonly auditProducerService: AuditProducerService,
     private readonly aiService: AiService,
     private readonly usersService: UsersService,
+    private readonly emailService: EmailService,
   ) {
     this.bucketName = this.configService.get<string>(
       'GCS_BUCKET_NAME',
@@ -276,8 +279,18 @@ export class DocumentsService {
       throw new BadRequestException('Only PDF documents can be signed.');
     }
 
-    if (document.isSigned) {
-      throw new BadRequestException('Document is already signed.');
+    if (document.status === 'FULLY_SIGNED') {
+      throw new BadRequestException('Document is already fully signed.');
+    }
+
+    if (document.status === 'DRAFT' || !document.status) {
+      document.status = 'SIGNED_BY_PARTY_A';
+      document.partyASignatureName = userName;
+      document.signedAt = new Date();
+    } else {
+      throw new BadRequestException(
+        'Document cannot be signed by Party A at this stage.',
+      );
     }
 
     const bucket = this.storage.bucket(this.bucketName);
@@ -328,8 +341,7 @@ export class DocumentsService {
       });
 
       document.size = pdfBytes.length;
-      document.isSigned = true;
-      document.signedAt = new Date();
+      document.isSigned = true; // Still flag it for backwards compatibility
       await document.save();
 
       await this.auditProducerService.logAction(
@@ -351,6 +363,169 @@ export class DocumentsService {
     } catch (error) {
       console.error('Error signing document in GCS:', error);
       throw new InternalServerErrorException('Failed to sign document');
+    }
+  }
+
+  async inviteToSign(
+    id: string,
+    userId: string,
+    role: Role,
+    externalEmail: string,
+  ): Promise<void> {
+    const document = await this.getDocumentById(id);
+
+    if (
+      (document.uploadedBy as Types.ObjectId).toString() !== userId &&
+      role !== Role.Admin &&
+      role !== Role.Moderator
+    ) {
+      throw new ForbiddenException(
+        'You do not have permission to invite signers.',
+      );
+    }
+
+    if (document.status !== 'SIGNED_BY_PARTY_A' && document.status !== 'INVITATION_SENT') {
+      throw new BadRequestException(
+        'Document must be signed by you first before inviting.',
+      );
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
+
+    document.externalPartyEmail = externalEmail;
+    document.externalSignatureToken = token;
+    document.externalSignatureTokenExpiresAt = expiresAt;
+    document.status = 'INVITATION_SENT';
+
+    await document.save();
+
+    const frontendUrl = this.configService.get<string>(
+      'FRONTEND_URL',
+      'http://localhost:4200',
+    );
+    const signLink = `${frontendUrl}/sign-invoice?token=${token}`;
+
+    await this.emailService.sendSignDocumentEmail(
+      externalEmail,
+      'External Signer',
+      `You have been invited to review and sign a document: ${document.filename}.`,
+      signLink,
+    );
+  }
+
+  async getDocumentByExternalToken(token: string): Promise<DocumentDocument> {
+    const document = await this.documentModel
+      .findOne({
+        externalSignatureToken: token,
+        externalSignatureTokenExpiresAt: { $gt: new Date() },
+      })
+      .exec();
+
+    if (!document) {
+      throw new NotFoundException('Invalid or expired signature token.');
+    }
+    return document;
+  }
+
+  async signExternal(
+    token: string,
+    signatureName: string,
+    signatureImage?: string,
+  ): Promise<DocumentDocument> {
+    const document = await this.getDocumentByExternalToken(token);
+
+    if (document.status !== 'INVITATION_SENT') {
+      throw new BadRequestException(
+        'Document is not pending external signature.',
+      );
+    }
+
+    const bucket = this.storage.bucket(this.bucketName);
+    const file = bucket.file(document.storageKey);
+
+    try {
+      const [fileBuffer] = await file.download();
+
+      const pdfDoc = await PDFDocument.load(fileBuffer);
+      const helveticaFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+      const pages = pdfDoc.getPages();
+      const firstPage = pages[0];
+
+      // Second signature is lower down
+      const signatureText = `Digitally Signed by ${signatureName} on ${new Date().toLocaleDateString()}`;
+      firstPage.drawText(signatureText, {
+        x: 50,
+        y: 60, // shifted down from the previous one
+        size: 14,
+        font: helveticaFont,
+        color: rgb(0, 0.53, 0.71),
+      });
+
+      const textWidth = helveticaFont.widthOfTextAtSize(signatureText, 14);
+
+      if (signatureImage) {
+        const base64Data = signatureImage.replace(
+          /^data:image\/png;base64,/,
+          '',
+        );
+        const imageBytes = Buffer.from(base64Data, 'base64');
+        const pngImage = await pdfDoc.embedPng(imageBytes);
+        const pngDims = pngImage.scale(0.25);
+        firstPage.drawImage(pngImage, {
+          x: 50 + textWidth + 15,
+          y: 50, // lower down for Party B
+          width: pngDims.width,
+          height: pngDims.height,
+        });
+      }
+
+      const pdfBytes = await pdfDoc.save();
+
+      await file.save(Buffer.from(pdfBytes), {
+        contentType: 'application/pdf',
+        resumable: false,
+      });
+
+      document.size = pdfBytes.length;
+      document.status = 'FULLY_SIGNED';
+      document.partyBSignatureName = signatureName;
+      document.partyBSignedAt = new Date();
+
+      // Clear token
+      document.externalSignatureToken = undefined;
+      document.externalSignatureTokenExpiresAt = undefined;
+
+      await document.save();
+
+      await this.auditProducerService.logAction(
+        'DOCUMENT_FULLY_SIGNED',
+        'Document',
+        document._id.toString(),
+        'EXTERNAL_USER',
+        { filename: document.filename },
+      );
+
+      // Email the finalized PDF back to the original uploader
+      const uploader = await this.usersService.getUserById(
+        (document.uploadedBy as Types.ObjectId).toString(),
+      );
+      if (uploader) {
+        await this.emailService.sendNotificationEmail(
+          uploader.email,
+          uploader.username,
+          `The document ${document.filename} has been fully signed by ${signatureName}.`,
+        );
+      }
+
+      return document;
+    } catch (error) {
+      console.error('Error signing external document:', error);
+      throw new InternalServerErrorException(
+        'Failed to apply external signature',
+      );
     }
   }
 
@@ -433,10 +608,14 @@ export class DocumentsService {
     return chunks;
   }
 
-  async syncToGoogleDrive(id: string, userId: string): Promise<string> {
+  async syncToGoogleDrive(id: string, userId: string, role?: Role): Promise<string> {
     const document = await this.getDocumentById(id);
 
-    if ((document.uploadedBy as Types.ObjectId).toString() !== userId) {
+    if (
+      (document.uploadedBy as Types.ObjectId).toString() !== userId &&
+      role !== Role.Admin &&
+      role !== Role.Moderator
+    ) {
       throw new ForbiddenException(
         'You do not have permission to sync this document.',
       );
