@@ -23,6 +23,7 @@ import * as crypto from 'crypto';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { AuditProducerService } from '../audit/audit-producer.service';
 import { EmailService } from '../email/email.service';
+import { Role } from '../users/enums/role.enum';
 import {
   generateInvoicePdf,
   generateContractPdf,
@@ -368,11 +369,16 @@ export class DocumentsService {
   async inviteToSign(
     id: string,
     userId: string,
+    role: string,
     externalEmail: string,
   ): Promise<void> {
     const document = await this.getDocumentById(id);
 
-    if ((document.uploadedBy as Types.ObjectId).toString() !== userId) {
+    if (
+      (document.uploadedBy as Types.ObjectId).toString() !== userId &&
+      role !== Role.Admin &&
+      role !== Role.Moderator
+    ) {
       throw new ForbiddenException(
         'You do not have permission to invite signers.',
       );
@@ -401,7 +407,7 @@ export class DocumentsService {
     );
     const signLink = `${frontendUrl}/sign-invoice?token=${token}`;
 
-    await this.emailService.sendNotificationEmail(
+    await this.emailService.sendSignDocumentEmail(
       externalEmail,
       'External Signer',
       `You have been invited to review and sign a document: ${document.filename}.`,
@@ -602,10 +608,14 @@ export class DocumentsService {
     return chunks;
   }
 
-  async syncToGoogleDrive(id: string, userId: string): Promise<string> {
+  async syncToGoogleDrive(id: string, userId: string, role?: string): Promise<string> {
     const document = await this.getDocumentById(id);
 
-    if ((document.uploadedBy as Types.ObjectId).toString() !== userId) {
+    if (
+      (document.uploadedBy as Types.ObjectId).toString() !== userId &&
+      role !== Role.Admin &&
+      role !== Role.Moderator
+    ) {
       throw new ForbiddenException(
         'You do not have permission to sync this document.',
       );
