@@ -13,7 +13,6 @@ export const fsMcpHost = createMcpHost({
       args: ['-y', '@modelcontextprotocol/server-filesystem', docsDir],
     },
   },
-  roots: [{ uri: `file://${docsDir}`, name: 'docs' }],
 });
 
 // MongoDB MCP host — kept separate because the server emits array parameters
