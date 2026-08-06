@@ -23,6 +23,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { DocumentsModule } from './documents/documents.module';
 import { PaymentsModule } from './payments/payments.module';
 import { IntegrationsModule } from './integrations/integrations.module';
+import { CustomersModule } from './customers/customers.module';
 
 @Module({
   imports: [
@@ -96,6 +97,7 @@ import { IntegrationsModule } from './integrations/integrations.module';
     EventEmitterModule.forRoot(),
     PaymentsModule,
     IntegrationsModule,
+    CustomersModule,
   ],
   controllers: [],
   providers: [
