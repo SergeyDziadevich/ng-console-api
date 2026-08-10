@@ -308,7 +308,7 @@ export class AiService {
     }));
 
     const intentResponse = await this.ai.generate({
-      model: googleAI.model('gemini-3.1-flash-lite'),
+      model: googleAI.model('gemini-3.6-flash'),
       prompt: `Classify the user's query as either a 'text' or a 'image' request. Query: "${prompt}"`,
       output: {
         schema: z.object({
@@ -330,7 +330,7 @@ export class AiService {
 
     if (intent === 'text') {
       const { text } = await this.ai.generate({
-        model: googleAI.model('gemini-3.1-flash-lite'),
+        model: googleAI.model('gemini-3.6-flash'),
         system,
         messages: conversationHistory,
         prompt,
@@ -341,7 +341,7 @@ export class AiService {
       return text;
     } else if (intent === 'image') {
       const imageResponse = await this.ai.generate({
-        model: googleAI.model('gemini-3.1-flash-lite'),
+        model: googleAI.model('gemini-3.6-flash'),
         messages: conversationHistory,
         prompt: prompt,
         output: { format: 'media' },
@@ -432,7 +432,7 @@ export class AiService {
 
       // Step 1: Use tools to gather analytics (structured output not compatible with function calling)
       const toolResponse = await this.ai.generate({
-        model: googleAI.model('gemini-3.1-flash-lite'),
+        model: googleAI.model('gemini-3.6-flash'),
         prompt: `List files in ${docsDir}. Read the content of these files and calculate the total sum of all numeric values found within them. If no numbers are found, state that clearly.`,
         tools: fsTools,
         maxTurns: 20,
@@ -442,7 +442,7 @@ export class AiService {
 
       // Step 2: Structure the gathered result (no tools, so structured output works fine)
       const structuredResponse = await this.ai.generate({
-        model: googleAI.model('gemini-3.1-flash-lite'),
+        model: googleAI.model('gemini-3.6-flash'),
         prompt: `Based on the following analysis result, extract a summary and the total numeric sum. If no sum was found, use null.\n\nAnalysis:\n${rawText}`,
         output: {
           schema: z.object({
