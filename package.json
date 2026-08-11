@@ -25,7 +25,7 @@
     "@as-integrations/express5": "^1.1.2",
     "@genkit-ai/google-genai": "^1.40.1",
     "@genkit-ai/mcp": "^1.40.1",
-    "@genkit-ai/middleware": "^0.8.0",
+    "@genkit-ai/middleware": "^0.8.1",
     "@google-cloud/storage": "^7.21.0",
     "@nestjs-mcp/server": "^1.0.0",
     "@nestjs-modules/mailer": "^2.3.7",
