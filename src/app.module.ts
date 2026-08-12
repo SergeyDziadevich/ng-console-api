@@ -24,6 +24,7 @@ import { DocumentsModule } from './documents/documents.module';
 import { PaymentsModule } from './payments/payments.module';
 import { IntegrationsModule } from './integrations/integrations.module';
 import { CustomersModule } from './customers/customers.module';
+import { WorkflowsModule } from './workflows/workflows.module';
 
 @Module({
   imports: [
@@ -98,6 +99,7 @@ import { CustomersModule } from './customers/customers.module';
     PaymentsModule,
     IntegrationsModule,
     CustomersModule,
+    WorkflowsModule,
   ],
   controllers: [],
   providers: [
