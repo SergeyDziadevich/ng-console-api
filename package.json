@@ -39,7 +39,7 @@
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/microservices": "^11.1.28",
     "@nestjs/mongoose": "^11.0.4",
-    "@nestjs/platform-express": "^11.1.28",
+    "@nestjs/platform-express": "^11.2.1",
     "@nestjs/platform-socket.io": "^11.1.28",
     "@nestjs/typeorm": "^11.0.3",
     "@nestjs/websockets": "^11.1.28",
