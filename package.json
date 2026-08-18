@@ -35,7 +35,7 @@
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.1.28",
     "@nestjs/event-emitter": "^3.1.0",
-    "@nestjs/graphql": "^13.4.2",
+    "@nestjs/graphql": "^13.4.4",
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/microservices": "^11.1.28",
     "@nestjs/mongoose": "^11.0.4",
