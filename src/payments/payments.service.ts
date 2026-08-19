@@ -31,7 +31,7 @@ export class PaymentsService {
       this.configService.get<string>('STRIPE_SECRET_KEY') || 'sk_test_mock';
 
     this.stripe = new Stripe(secretKey, {
-      apiVersion: '2026-06-24.dahlia',
+      apiVersion: '2026-07-29.dahlia',
     });
   }
 
