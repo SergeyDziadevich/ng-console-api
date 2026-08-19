@@ -53,7 +53,7 @@
     "genkit": "^1.36.0",
     "google-auth-library": "^11.0.0",
     "googleapis": "^174.0.1",
-    "graphql": "^17.0.2",
+    "graphql": "^16.14.2",
     "handlebars": "^4.7.9",
     "ioredis": "^6.0.0",
     "kafkajs": "^2.2.4",
