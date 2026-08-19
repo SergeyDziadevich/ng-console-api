@@ -86,3 +86,6 @@ jobs:
           export DOCKER_IMAGE_API="${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:latest"
           sudo -E docker compose pull ng-console-api
           sudo -E docker compose up -d ng-console-api prometheus grafana
+          
+          # Clean up old unused docker images to prevent disk space exhaustion
+          sudo docker image prune -af
