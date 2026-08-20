@@ -25,7 +25,8 @@ export class PaymentsController {
     try {
       return await this.paymentsService.createCheckout(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Create checkout failed';
+      const message =
+        err instanceof Error ? err.message : 'Create checkout failed';
       throw new RpcException({ statusCode: 400, message });
     }
   }
@@ -52,7 +53,9 @@ export class PaymentsController {
   }
 
   @MessagePattern(PAYMENT_PATTERNS.GET_INVOICES)
-  async getInvoices(@Payload() data: GetInvoicesCommand): Promise<InvoiceDto[]> {
+  async getInvoices(
+    @Payload() data: GetInvoicesCommand,
+  ): Promise<InvoiceDto[]> {
     return this.paymentsService.getInvoices(data);
   }
 

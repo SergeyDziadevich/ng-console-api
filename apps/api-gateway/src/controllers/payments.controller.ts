@@ -24,7 +24,12 @@ import {
   SubscriptionDto,
   VerifySessionCommand,
 } from '@ng-console-api/contracts';
-import { CurrentUser, JwtAuthGuard, Public, UserContext } from '@ng-console-api/common';
+import {
+  CurrentUser,
+  JwtAuthGuard,
+  Public,
+  UserContext,
+} from '@ng-console-api/common';
 import {
   CreateCheckoutDto,
   CreatePortalDto,

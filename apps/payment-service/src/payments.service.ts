@@ -33,7 +33,9 @@ export class PaymentsService {
     });
   }
 
-  async createCheckout(cmd: CreateCheckoutCommand): Promise<CheckoutSessionDto> {
+  async createCheckout(
+    cmd: CreateCheckoutCommand,
+  ): Promise<CheckoutSessionDto> {
     try {
       const session = await this.stripe.checkout.sessions.create({
         payment_method_types: ['card'],
@@ -54,7 +56,7 @@ export class PaymentsService {
         sessionId: session.id,
         url: session.url || '',
       };
-    } catch (err: unknown) {
+    } catch {
       // Fallback for offline/test environments
       const mockSessionId = `cs_test_${Date.now()}`;
       return {
@@ -66,7 +68,9 @@ export class PaymentsService {
 
   async verifySession(cmd: VerifySessionCommand): Promise<{ status: string }> {
     try {
-      const session = await this.stripe.checkout.sessions.retrieve(cmd.sessionId);
+      const session = await this.stripe.checkout.sessions.retrieve(
+        cmd.sessionId,
+      );
       return { status: session.status || 'complete' };
     } catch {
       return { status: 'complete' };
@@ -81,11 +85,15 @@ export class PaymentsService {
       });
       return { url: session.url };
     } catch {
-      return { url: `https://billing.stripe.com/p/session/portal_${cmd.userId}` };
+      return {
+        url: `https://billing.stripe.com/p/session/portal_${cmd.userId}`,
+      };
     }
   }
 
-  async getSubscription(cmd: GetSubscriptionCommand): Promise<SubscriptionDto | null> {
+  async getSubscription(
+    cmd: GetSubscriptionCommand,
+  ): Promise<SubscriptionDto | null> {
     return {
       id: `sub_${cmd.userId}`,
       status: 'active',
@@ -95,7 +103,7 @@ export class PaymentsService {
     };
   }
 
-  async getInvoices(cmd: GetInvoicesCommand): Promise<InvoiceDto[]> {
+  async getInvoices(_cmd: GetInvoicesCommand): Promise<InvoiceDto[]> {
     return [
       {
         id: `inv_${Date.now()}`,
@@ -108,8 +116,12 @@ export class PaymentsService {
     ];
   }
 
-  async handleWebhook(cmd: HandleWebhookCommand): Promise<{ received: boolean }> {
-    const webhookSecret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET');
+  async handleWebhook(
+    cmd: HandleWebhookCommand,
+  ): Promise<{ received: boolean }> {
+    const webhookSecret = this.configService.get<string>(
+      'STRIPE_WEBHOOK_SECRET',
+    );
     let event: Stripe.Event;
 
     try {
@@ -123,8 +135,11 @@ export class PaymentsService {
         event = JSON.parse(cmd.payload) as Stripe.Event;
       }
     } catch (err: unknown) {
-      this.logger.warn(`Stripe webhook signature verification skipped: ${String(err)}`);
-      event = typeof cmd.payload === 'string' ? JSON.parse(cmd.payload) : cmd.payload;
+      this.logger.warn(
+        `Stripe webhook signature verification skipped: ${String(err)}`,
+      );
+      event =
+        typeof cmd.payload === 'string' ? JSON.parse(cmd.payload) : cmd.payload;
     }
 
     if (event.type === 'checkout.session.completed') {
