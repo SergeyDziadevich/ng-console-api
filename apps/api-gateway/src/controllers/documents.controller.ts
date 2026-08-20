@@ -20,7 +20,12 @@ import {
   SignDocumentCommand,
   UploadDocumentCommand,
 } from '@ng-console-api/contracts';
-import { CurrentUser, JwtAuthGuard, Public, UserContext } from '@ng-console-api/common';
+import {
+  CurrentUser,
+  JwtAuthGuard,
+  Public,
+  UserContext,
+} from '@ng-console-api/common';
 import {
   GenerateDocumentDto,
   SearchChunksDto,
@@ -130,7 +135,9 @@ export class DocumentsGatewayController {
 
   @UseGuards(JwtAuthGuard)
   @Get('search/chunks')
-  async searchChunks(@Query() dto: SearchChunksDto): Promise<DocumentChunkDto[]> {
+  async searchChunks(
+    @Query() dto: SearchChunksDto,
+  ): Promise<DocumentChunkDto[]> {
     const payload: SearchChunksCommand = {
       query: dto.query,
       limit: dto.limit,

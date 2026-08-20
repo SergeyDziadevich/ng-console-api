@@ -8,5 +8,5 @@ export class GenerateDocumentDto {
 
   @IsObject()
   @IsNotEmpty()
-  data: Record<string, any>;
+  data: Record<string, unknown>;
 }

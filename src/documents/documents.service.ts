@@ -25,10 +25,14 @@ import { AuditProducerService } from '../audit/audit-producer.service';
 import { EmailService } from '../email/email.service';
 import { Role } from '../users/enums/role.enum';
 import {
+  B2BContractPlData,
+  ContractData,
   generateInvoicePdf,
   generateContractPdf,
   generateB2BContractPlPdf,
   generateMsaPdf,
+  InvoiceData,
+  MsaData,
 } from './document-generators';
 
 @Injectable()
@@ -384,7 +388,10 @@ export class DocumentsService {
       );
     }
 
-    if (document.status !== 'SIGNED_BY_PARTY_A' && document.status !== 'INVITATION_SENT') {
+    if (
+      document.status !== 'SIGNED_BY_PARTY_A' &&
+      document.status !== 'INVITATION_SENT'
+    ) {
       throw new BadRequestException(
         'Document must be signed by you first before inviting.',
       );
@@ -531,7 +538,7 @@ export class DocumentsService {
 
   async generateDocument(
     templateType: 'msa' | 'invoice' | 'contract' | 'b2b-contract-pl',
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     userId: string,
   ): Promise<Document> {
     try {
@@ -539,16 +546,18 @@ export class DocumentsService {
 
       switch (templateType) {
         case 'msa':
-          pdfBytes = await generateMsaPdf(data);
+          pdfBytes = await generateMsaPdf(data as unknown as MsaData);
           break;
         case 'invoice':
-          pdfBytes = await generateInvoicePdf(data);
+          pdfBytes = await generateInvoicePdf(data as unknown as InvoiceData);
           break;
         case 'contract':
-          pdfBytes = await generateContractPdf(data);
+          pdfBytes = await generateContractPdf(data as unknown as ContractData);
           break;
         case 'b2b-contract-pl':
-          pdfBytes = await generateB2BContractPlPdf(data);
+          pdfBytes = await generateB2BContractPlPdf(
+            data as unknown as B2BContractPlData,
+          );
           break;
         default:
           throw new BadRequestException('Invalid template type');
@@ -608,7 +617,11 @@ export class DocumentsService {
     return chunks;
   }
 
-  async syncToGoogleDrive(id: string, userId: string, role?: Role): Promise<string> {
+  async syncToGoogleDrive(
+    id: string,
+    userId: string,
+    role?: Role,
+  ): Promise<string> {
     const document = await this.getDocumentById(id);
 
     if (

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
@@ -121,7 +125,9 @@ export class DocumentsService {
   async getByToken(token: string): Promise<DocumentDto> {
     const doc = await this.docModel.findOne({ shareToken: token }).exec();
     if (!doc) {
-      throw new NotFoundException('Document with this share token was not found');
+      throw new NotFoundException(
+        'Document with this share token was not found',
+      );
     }
     return this.mapToDocDto(doc);
   }
@@ -129,7 +135,9 @@ export class DocumentsService {
   async signDocument(cmd: SignDocumentCommand): Promise<DocumentDto> {
     const doc = await this.docModel.findById(cmd.documentId).exec();
     if (!doc) {
-      throw new NotFoundException(`Document with ID ${cmd.documentId} not found`);
+      throw new NotFoundException(
+        `Document with ID ${cmd.documentId} not found`,
+      );
     }
 
     if (cmd.token && doc.shareToken !== cmd.token) {

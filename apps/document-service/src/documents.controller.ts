@@ -35,27 +35,34 @@ export class DocumentsController {
     try {
       return await this.documentsService.upload(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Upload document failed';
+      const message =
+        err instanceof Error ? err.message : 'Upload document failed';
       throw new RpcException({ statusCode: 400, message });
     }
   }
 
   @MessagePattern(DOCUMENT_PATTERNS.GENERATE)
-  async generate(@Payload() data: GenerateDocumentCommand): Promise<DocumentDto> {
+  async generate(
+    @Payload() data: GenerateDocumentCommand,
+  ): Promise<DocumentDto> {
     try {
       return await this.documentsService.generate(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Generate document failed';
+      const message =
+        err instanceof Error ? err.message : 'Generate document failed';
       throw new RpcException({ statusCode: 400, message });
     }
   }
 
   @MessagePattern(DOCUMENT_PATTERNS.SIGN)
-  async signDocument(@Payload() data: SignDocumentCommand): Promise<DocumentDto> {
+  async signDocument(
+    @Payload() data: SignDocumentCommand,
+  ): Promise<DocumentDto> {
     try {
       return await this.documentsService.signDocument(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Sign document failed';
+      const message =
+        err instanceof Error ? err.message : 'Sign document failed';
       throw new RpcException({ statusCode: 400, message });
     }
   }
