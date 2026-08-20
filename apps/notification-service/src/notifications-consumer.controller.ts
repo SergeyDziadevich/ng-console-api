@@ -20,11 +20,19 @@ export class NotificationsConsumerController {
 
   @EventPattern(KAFKA_TOPICS.USER_CREATED)
   async handleUserCreated(@Payload() event: UserCreatedEvent): Promise<void> {
-    this.logger.log(`Received user.created event for user ${event.email}`);
+    if (!event || typeof event !== 'object' || !event.userId) {
+      this.logger.warn(
+        `Received malformed or null user.created event: ${JSON.stringify(event)}`,
+      );
+      return;
+    }
+    this.logger.log(
+      `Received user.created event for user ${event.email ?? event.userId}`,
+    );
     const notif = await this.notificationsService.createNotification({
       userId: event.userId,
       title: 'Welcome to Cloud Console',
-      message: `Hello ${event.name}, welcome aboard!`,
+      message: `Hello ${event.name ?? 'User'}, welcome aboard!`,
       type: 'user.created',
       broadcast: false,
     });
@@ -35,11 +43,24 @@ export class NotificationsConsumerController {
   async handleTicketAssigned(
     @Payload() event: TicketAssignedEvent,
   ): Promise<void> {
-    this.logger.log(`Received ticket.assigned event for ticket ${event.ticketId}`);
+    if (
+      !event ||
+      typeof event !== 'object' ||
+      !event.userId ||
+      !event.ticketId
+    ) {
+      this.logger.warn(
+        `Received malformed or null ticket.assigned event: ${JSON.stringify(event)}`,
+      );
+      return;
+    }
+    this.logger.log(
+      `Received ticket.assigned event for ticket ${event.ticketId}`,
+    );
     const notif = await this.notificationsService.createNotification({
       userId: event.userId,
       title: 'Ticket Assigned',
-      message: `You have been assigned to ticket: ${event.title}`,
+      message: `You have been assigned to ticket: ${event.title ?? event.ticketId}`,
       type: 'ticket.assigned',
       metadata: { ticketId: event.ticketId },
     });
@@ -50,10 +71,18 @@ export class NotificationsConsumerController {
   async handleEmailNotification(
     @Payload() event: EmailNotificationEvent,
   ): Promise<void> {
-    this.logger.log(`Received email.notification event for ${event.to}`);
+    if (!event || typeof event !== 'object' || (!event.to && !event.message)) {
+      this.logger.warn(
+        `Received malformed or null email.notification event: ${JSON.stringify(event)}`,
+      );
+      return;
+    }
+    this.logger.log(
+      `Received email.notification event for ${event.to ?? 'broadcast'}`,
+    );
     const notif = await this.notificationsService.createNotification({
       title: event.subject || 'System Notification',
-      message: event.message,
+      message: event.message ?? '',
       type: 'email.notification',
       broadcast: true,
     });

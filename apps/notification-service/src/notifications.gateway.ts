@@ -29,7 +29,9 @@ export class NotificationsGateway {
   ): void {
     if (payload?.userId) {
       void client.join(`user:${payload.userId}`);
-      this.logger.log(`Client ${client.id} subscribed to user:${payload.userId}`);
+      this.logger.log(
+        `Client ${client.id} subscribed to user:${payload.userId}`,
+      );
     }
   }
 

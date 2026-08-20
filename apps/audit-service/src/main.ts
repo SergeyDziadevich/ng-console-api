@@ -5,32 +5,29 @@ import { AppModule } from './app.module';
 
 async function bootstrap(): Promise<void> {
   const logger = new Logger('AuditService');
-  const transportType = (process.env.MICROSERVICE_TRANSPORT || 'tcp').toLowerCase();
+  const app = await NestFactory.create(AppModule);
+  const transportType = (
+    process.env.MICROSERVICE_TRANSPORT || 'tcp'
+  ).toLowerCase();
 
-  let rpcOptions: MicroserviceOptions;
-
+  // Connect TCP / Redis RPC
   if (transportType === 'redis') {
-    rpcOptions = {
+    app.connectMicroservice<MicroserviceOptions>({
       transport: Transport.REDIS,
       options: {
         host: process.env.REDIS_HOST || 'localhost',
         port: Number(process.env.REDIS_PORT || 6379),
       },
-    };
+    });
   } else {
-    rpcOptions = {
+    app.connectMicroservice<MicroserviceOptions>({
       transport: Transport.TCP,
       options: {
         host: process.env.AUDIT_SERVICE_TCP_HOST || '127.0.0.1',
         port: Number(process.env.AUDIT_SERVICE_TCP_PORT || 4008),
       },
-    };
+    });
   }
-
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
-    AppModule,
-    rpcOptions,
-  );
 
   // Connect Kafka Consumer
   if (process.env.NODE_ENV !== 'test') {
@@ -49,9 +46,10 @@ async function bootstrap(): Promise<void> {
   }
 
   await app.startAllMicroservices();
-  await app.listen();
+  const httpPort = Number(process.env.AUDIT_HTTP_PORT || 3008);
+  await app.listen(httpPort);
   logger.log(
-    `Audit Microservice is listening via ${transportType.toUpperCase()} & Kafka`,
+    `Audit Microservice is listening via ${transportType.toUpperCase()} & Kafka on port ${httpPort}`,
   );
 }
 

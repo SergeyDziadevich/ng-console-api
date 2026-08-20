@@ -5,7 +5,9 @@ import { AppModule } from './app.module';
 
 async function bootstrap(): Promise<void> {
   const logger = new Logger('DocumentService');
-  const transportType = (process.env.MICROSERVICE_TRANSPORT || 'tcp').toLowerCase();
+  const transportType = (
+    process.env.MICROSERVICE_TRANSPORT || 'tcp'
+  ).toLowerCase();
 
   let options: MicroserviceOptions;
 

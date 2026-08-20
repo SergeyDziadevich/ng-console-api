@@ -7,7 +7,9 @@ async function bootstrap(): Promise<void> {
   const logger = new Logger('NotificationService');
   const app = await NestFactory.create(AppModule, { cors: true });
 
-  const transportType = (process.env.MICROSERVICE_TRANSPORT || 'tcp').toLowerCase();
+  const transportType = (
+    process.env.MICROSERVICE_TRANSPORT || 'tcp'
+  ).toLowerCase();
 
   // Connect TCP / Redis RPC
   if (transportType === 'redis') {

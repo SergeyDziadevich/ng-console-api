@@ -29,7 +29,7 @@ export class NotificationsGateway implements OnGatewayConnection {
   }
 
   @OnEvent('audit.log.created')
-  handleAuditLogCreated(payload: any) {
+  handleAuditLogCreated(payload: unknown) {
     this.server.emit('new-audit-log', payload);
   }
 }

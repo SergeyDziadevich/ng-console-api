@@ -23,7 +23,9 @@ async function bootstrap(): Promise<void> {
   );
 
   await app.listen();
-  logger.log('Mailer Microservice is listening for Kafka events (email-consumer-group)');
+  logger.log(
+    'Mailer Microservice is listening for Kafka events (email-consumer-group)',
+  );
 }
 
 void bootstrap();
