@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ng-console-config
+  namespace: ng-console
+  labels:
+    app.kubernetes.io/name: ng-console-config
+    app.kubernetes.io/part-of: ng-console-platform
+data:
+  NODE_ENV: "production"
+  PORT: "3000"
+  LOG_LEVEL: "info"
+  MICROSERVICE_TRANSPORT: "tcp"
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  KAFKA_BROKER: "kafka-service:9092"
+  POSTGRES_HOST: "postgres-service"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "tickets_db"
+  MONGODB_URI: "mongodb://mongodb-service:27017/nest_mongodb"
+  AUTH_SERVICE_TCP_HOST: "auth-service"
+  AUTH_SERVICE_TCP_PORT: "4001"
+  USER_SERVICE_TCP_HOST: "user-service"
+  USER_SERVICE_TCP_PORT: "4002"
+  TICKET_SERVICE_TCP_HOST: "ticket-service"
+  TICKET_SERVICE_TCP_PORT: "4003"
+  DOCUMENT_SERVICE_TCP_HOST: "document-service"
+  DOCUMENT_SERVICE_TCP_PORT: "4004"
+  PAYMENT_SERVICE_TCP_HOST: "payment-service"
+  PAYMENT_SERVICE_TCP_PORT: "4005"
+  CHAT_SERVICE_TCP_HOST: "chat-service"
+  CHAT_SERVICE_TCP_PORT: "4006"
+  NOTIFICATION_SERVICE_TCP_HOST: "notification-service"
+  NOTIFICATION_SERVICE_TCP_PORT: "4007"
+  AUDIT_SERVICE_TCP_HOST: "audit-service"
+  AUDIT_SERVICE_TCP_PORT: "4008"
+  AI_SERVICE_TCP_HOST: "ai-service"
+  AI_SERVICE_TCP_PORT: "4009"
+  CUSTOMER_SERVICE_TCP_HOST: "customer-service"
+  CUSTOMER_SERVICE_TCP_PORT: "4010"
+  API_GATEWAY_URL: "http://api-gateway:3000"
+  USERS_MFE_URL: "http://users-mfe:8080"
+  TICKETS_MFE_URL: "http://tickets-mfe:8080"
+  DOCUMENTS_MFE_URL: "http://documents-mfe:8080"
+  PAYMENTS_MFE_URL: "http://payments-mfe:8080"
+  CHAT_MFE_URL: "http://chat-mfe:8080"
+  AI_ASSISTANT_MFE_URL: "http://ai-assistant-mfe:8080"
+  CORS_ORIGIN: "*"

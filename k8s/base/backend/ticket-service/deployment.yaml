@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ticket-service
+  namespace: ng-console
+  labels:
+    app: ticket-service
+    app.kubernetes.io/name: ticket-service
+    app.kubernetes.io/part-of: ng-console
+    app.kubernetes.io/component: microservice
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ticket-service
+  template:
+    metadata:
+      labels:
+        app: ticket-service
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: ticket-service
+          image: ng-console-ticket-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4003
+              name: tcp-rpc
+          envFrom:
+            - configMapRef:
+                name: ng-console-config
+            - secretRef:
+                name: ng-console-secrets
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 100m
+              memory: 192Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
+          livenessProbe:
+            tcpSocket:
+              port: 4003
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: 4003
+            initialDelaySeconds: 10
+            periodSeconds: 5

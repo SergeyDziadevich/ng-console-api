@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - shell/deployment.yaml
+  - shell/service.yaml
+  - users-mfe/deployment.yaml
+  - users-mfe/service.yaml
+  - tickets-mfe/deployment.yaml
+  - tickets-mfe/service.yaml
+  - documents-mfe/deployment.yaml
+  - documents-mfe/service.yaml
+  - payments-mfe/deployment.yaml
+  - payments-mfe/service.yaml
+  - chat-mfe/deployment.yaml
+  - chat-mfe/service.yaml
+  - ai-assistant-mfe/deployment.yaml
+  - ai-assistant-mfe/service.yaml

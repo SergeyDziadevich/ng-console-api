@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ticket-service
+  namespace: ng-console
+  labels:
+    app: ticket-service
+    app.kubernetes.io/name: ticket-service
+    app.kubernetes.io/part-of: ng-console
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4003
+      targetPort: 4003
+      name: tcp-rpc
+  selector:
+    app: ticket-service

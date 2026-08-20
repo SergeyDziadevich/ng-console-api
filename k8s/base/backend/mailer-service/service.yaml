@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mailer-service
+  namespace: ng-console
+  labels:
+    app: mailer-service
+    app.kubernetes.io/name: mailer-service
+    app.kubernetes.io/part-of: ng-console
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4011
+      targetPort: 4011
+      name: tcp-rpc
+  selector:
+    app: mailer-service

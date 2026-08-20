@@ -1,0 +1,36 @@
+{
+  "name": "customer-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/customer-service/src",
+  "projectType": "application",
+  "tags": ["scope:customers", "type:microservice"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/customer-service",
+        "main": "apps/customer-service/src/main.ts",
+        "tsConfig": "apps/customer-service/tsconfig.app.json",
+        "assets": ["apps/customer-service/src/assets"]
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "customer-service:build"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/apps/customer-service"],
+      "options": {
+        "jestConfig": "apps/customer-service/jest.config.ts"
+      }
+    }
+  }
+}

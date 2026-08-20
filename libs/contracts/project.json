@@ -1,0 +1,19 @@
+{
+  "name": "contracts",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/contracts/src",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:contracts"],
+  "targets": {
+    "build": {
+      "command": "tsc -p libs/contracts/tsconfig.lib.json",
+      "outputs": ["{workspaceRoot}/dist/libs/contracts"]
+    },
+    "test": {
+      "command": "jest --config libs/contracts/jest.config.ts"
+    },
+    "lint": {
+      "command": "eslint libs/contracts/**/*.ts"
+    }
+  }
+}

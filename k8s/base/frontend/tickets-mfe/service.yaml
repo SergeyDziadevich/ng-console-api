@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tickets-mfe
+  namespace: ng-console
+  labels:
+    app: tickets-mfe
+    app.kubernetes.io/name: tickets-mfe
+    app.kubernetes.io/part-of: ng-console
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+  selector:
+    app: tickets-mfe

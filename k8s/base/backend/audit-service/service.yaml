@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: audit-service
+  namespace: ng-console
+  labels:
+    app: audit-service
+    app.kubernetes.io/name: audit-service
+    app.kubernetes.io/part-of: ng-console
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4008
+      targetPort: 4008
+      name: tcp-rpc
+  selector:
+    app: audit-service

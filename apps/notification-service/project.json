@@ -1,0 +1,36 @@
+{
+  "name": "notification-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/notification-service/src",
+  "projectType": "application",
+  "tags": ["scope:notifications", "type:microservice"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/notification-service",
+        "main": "apps/notification-service/src/main.ts",
+        "tsConfig": "apps/notification-service/tsconfig.app.json",
+        "assets": ["apps/notification-service/src/assets"]
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "notification-service:build"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/apps/notification-service"],
+      "options": {
+        "jestConfig": "apps/notification-service/jest.config.ts"
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "document-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/document-service/src",
+  "projectType": "application",
+  "tags": ["scope:documents", "type:microservice"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/document-service",
+        "main": "apps/document-service/src/main.ts",
+        "tsConfig": "apps/document-service/tsconfig.app.json",
+        "assets": ["apps/document-service/src/assets"]
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "document-service:build"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/apps/document-service"],
+      "options": {
+        "jestConfig": "apps/document-service/jest.config.ts"
+      }
+    }
+  }
+}

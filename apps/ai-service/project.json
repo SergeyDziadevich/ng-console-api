@@ -1,0 +1,36 @@
+{
+  "name": "ai-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/ai-service/src",
+  "projectType": "application",
+  "tags": ["scope:ai", "type:microservice"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/ai-service",
+        "main": "apps/ai-service/src/main.ts",
+        "tsConfig": "apps/ai-service/tsconfig.app.json",
+        "assets": ["apps/ai-service/src/assets"]
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "ai-service:build"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/apps/ai-service"],
+      "options": {
+        "jestConfig": "apps/ai-service/jest.config.ts"
+      }
+    }
+  }
+}

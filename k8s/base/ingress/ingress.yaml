@@ -1,0 +1,105 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ng-console-ingress
+  namespace: ng-console
+  labels:
+    app.kubernetes.io/name: ng-console-ingress
+    app.kubernetes.io/part-of: ng-console
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/websocket-services: "api-gateway"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, PUT, POST, DELETE, PATCH, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization"
+spec:
+  rules:
+    - host: console.local
+      http:
+        paths:
+          # 1. API Gateway REST & GraphQL Routes
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 3000
+
+          # 2. WebSocket Real-time Gateway
+          - path: /socket.io(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 3000
+
+          # 3. Remote Users Micro-Frontend Assets & Manifest
+          - path: /mfe/users(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: users-mfe
+                port:
+                  number: 8080
+
+          # 4. Remote Tickets Micro-Frontend Assets & Manifest
+          - path: /mfe/tickets(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: tickets-mfe
+                port:
+                  number: 8080
+
+          # 5. Remote Documents Micro-Frontend Assets & Manifest
+          - path: /mfe/documents(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: documents-mfe
+                port:
+                  number: 8080
+
+          # 6. Remote Payments Micro-Frontend Assets & Manifest
+          - path: /mfe/payments(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: payments-mfe
+                port:
+                  number: 8080
+
+          # 7. Remote Chat Micro-Frontend Assets & Manifest
+          - path: /mfe/chat(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: chat-mfe
+                port:
+                  number: 8080
+
+          # 8. Remote AI Assistant Micro-Frontend Assets & Manifest
+          - path: /mfe/ai-assistant(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: ai-assistant-mfe
+                port:
+                  number: 8080
+
+          # 9. Host Shell Application (Fallback Catch-all)
+          - path: /(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: shell
+                port:
+                  number: 8080

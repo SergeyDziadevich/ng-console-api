@@ -1,0 +1,19 @@
+{
+  "name": "common",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/common/src",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:common"],
+  "targets": {
+    "build": {
+      "command": "tsc -p libs/common/tsconfig.lib.json",
+      "outputs": ["{workspaceRoot}/dist/libs/common"]
+    },
+    "test": {
+      "command": "jest --config libs/common/jest.config.ts"
+    },
+    "lint": {
+      "command": "eslint libs/common/**/*.ts"
+    }
+  }
+}

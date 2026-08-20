@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: documents-mfe
+  namespace: ng-console
+  labels:
+    app: documents-mfe
+    app.kubernetes.io/name: documents-mfe
+    app.kubernetes.io/part-of: ng-console
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+  selector:
+    app: documents-mfe

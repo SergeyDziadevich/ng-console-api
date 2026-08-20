@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-service
+  namespace: ng-console
+  labels:
+    app: chat-service
+    app.kubernetes.io/name: chat-service
+    app.kubernetes.io/part-of: ng-console
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4006
+      targetPort: 4006
+      name: tcp-rpc
+  selector:
+    app: chat-service
