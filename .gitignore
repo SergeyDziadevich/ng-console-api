@@ -3,6 +3,10 @@
 /node_modules
 /build
 
+# Nx cache
+.nx/cache
+.nx/workspace-data
+
 # Logs
 logs
 *.log
