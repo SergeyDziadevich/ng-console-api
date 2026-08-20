@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { of } from 'rxjs';
-import { ClientProxy } from '@nestjs/microservices';
 import { AuthGatewayController } from './controllers/auth.controller';
 import { UsersGatewayController } from './controllers/users.controller';
 import { TicketsGatewayController } from './controllers/tickets.controller';
@@ -12,7 +11,9 @@ import {
   DOCUMENT_PATTERNS,
   MICROSERVICE_SERVICES,
 } from '@ng-console-api/contracts';
-import { UserContext } from '@ng-console-api/common';
+import { JwtAuthGuard, UserContext } from '@ng-console-api/common';
+import { JwtService } from '@nestjs/jwt';
+import { Reflector } from '@nestjs/core';
 
 describe('API Gateway Controllers', () => {
   let authController: AuthGatewayController;
@@ -58,13 +59,30 @@ describe('API Gateway Controllers', () => {
           provide: MICROSERVICE_SERVICES.DOCUMENT_SERVICE,
           useValue: mockClientProxy,
         },
+        {
+          provide: JwtService,
+          useValue: {
+            verifyAsync: jest.fn().mockResolvedValue(mockUser),
+            signAsync: jest.fn().mockResolvedValue('jwt-mock-token'),
+          },
+        },
+        Reflector,
       ],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     authController = module.get<AuthGatewayController>(AuthGatewayController);
-    usersController = module.get<UsersGatewayController>(UsersGatewayController);
-    ticketsController = module.get<TicketsGatewayController>(TicketsGatewayController);
-    documentsController = module.get<DocumentsGatewayController>(DocumentsGatewayController);
+    usersController = module.get<UsersGatewayController>(
+      UsersGatewayController,
+    );
+    ticketsController = module.get<TicketsGatewayController>(
+      TicketsGatewayController,
+    );
+    documentsController = module.get<DocumentsGatewayController>(
+      DocumentsGatewayController,
+    );
   });
 
   describe('AuthGatewayController', () => {
@@ -77,10 +95,10 @@ describe('API Gateway Controllers', () => {
         password: 'Password123!',
       });
 
-      expect(mockClientProxy.send).toHaveBeenCalledWith(
-        AUTH_PATTERNS.SIGN_IN,
-        { email: 'test@example.com', pass: 'Password123!' },
-      );
+      expect(mockClientProxy.send).toHaveBeenCalledWith(AUTH_PATTERNS.SIGN_IN, {
+        email: 'test@example.com',
+        pass: 'Password123!',
+      });
       expect(result).toEqual(mockAuthResponse);
     });
 
@@ -88,7 +106,9 @@ describe('API Gateway Controllers', () => {
       const mockResponse = { access_token: 'jwt-google-token' };
       mockClientProxy.send.mockReturnValue(of(mockResponse));
 
-      const result = await authController.googleLogin({ token: 'google-oauth-token' });
+      const result = await authController.googleLogin({
+        token: 'google-oauth-token',
+      });
 
       expect(mockClientProxy.send).toHaveBeenCalledWith(
         AUTH_PATTERNS.GOOGLE_LOGIN,

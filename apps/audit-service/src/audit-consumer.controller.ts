@@ -11,6 +11,12 @@ export class AuditConsumerController {
 
   @EventPattern(KAFKA_TOPICS.AUDIT_LOGS)
   async handleAuditLog(@Payload() event: AuditLogEvent): Promise<void> {
+    if (!event || typeof event !== 'object' || !event.action) {
+      this.logger.warn(
+        `Received malformed or null audit-logs event: ${JSON.stringify(event)}`,
+      );
+      return;
+    }
     this.logger.log(`Ingesting Kafka audit event: ${event.action}`);
     await this.auditService.logEvent(event);
   }

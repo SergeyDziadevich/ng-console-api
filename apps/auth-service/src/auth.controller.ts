@@ -23,17 +23,21 @@ export class AuthController {
     try {
       return await this.authService.signIn(data.email, data.pass);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Authentication failed';
+      const message =
+        err instanceof Error ? err.message : 'Authentication failed';
       throw new RpcException({ statusCode: 401, message });
     }
   }
 
   @MessagePattern(AUTH_PATTERNS.GOOGLE_LOGIN)
-  async googleLogin(@Payload() data: GoogleLoginCommand): Promise<AuthResponseDto> {
+  async googleLogin(
+    @Payload() data: GoogleLoginCommand,
+  ): Promise<AuthResponseDto> {
     try {
       return await this.authService.googleLogin(data.token);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Google authentication failed';
+      const message =
+        err instanceof Error ? err.message : 'Google authentication failed';
       throw new RpcException({ statusCode: 401, message });
     }
   }
@@ -45,7 +49,8 @@ export class AuthController {
     try {
       return await this.authService.authenticate2FA(data.tempToken, data.code);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '2FA verification failed';
+      const message =
+        err instanceof Error ? err.message : '2FA verification failed';
       throw new RpcException({ statusCode: 401, message });
     }
   }
@@ -57,7 +62,8 @@ export class AuthController {
     try {
       return await this.authService.generate2FaSecret(data.userId);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '2FA secret generation failed';
+      const message =
+        err instanceof Error ? err.message : '2FA secret generation failed';
       throw new RpcException({ statusCode: 400, message });
     }
   }
@@ -69,7 +75,8 @@ export class AuthController {
     try {
       return await this.authService.turnOn2Fa(data.userId, data.code);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Enabling 2FA failed';
+      const message =
+        err instanceof Error ? err.message : 'Enabling 2FA failed';
       throw new RpcException({ statusCode: 400, message });
     }
   }

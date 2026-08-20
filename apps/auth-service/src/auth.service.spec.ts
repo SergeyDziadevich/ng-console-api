@@ -92,7 +92,10 @@ describe('AuthService', () => {
       });
       mockJwtService.signAsync.mockResolvedValue('signed-jwt-token');
 
-      const result = await service.signIn('john@example.com', 'CorrectPassword123!');
+      const result = await service.signIn(
+        'john@example.com',
+        'CorrectPassword123!',
+      );
 
       expect(result.access_token).toBe('signed-jwt-token');
       expect(result.user?.id).toBe('user-id-123');
@@ -115,7 +118,10 @@ describe('AuthService', () => {
       });
       mockJwtService.signAsync.mockResolvedValue('temp-2fa-token');
 
-      const result = await service.signIn('john@example.com', 'CorrectPassword123!');
+      const result = await service.signIn(
+        'john@example.com',
+        'CorrectPassword123!',
+      );
 
       expect(result.requires2fa).toBe(true);
       expect(result.tempToken).toBe('temp-2fa-token');

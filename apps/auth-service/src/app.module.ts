@@ -29,7 +29,8 @@ import { AuthService } from './auth.service';
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('JWT_SECRET', 'super-secret-jwt-key'),
         signOptions: {
-          expiresIn: (config.get<string>('JWT_EXPIRATION', '24h') || '24h') as `${number}h`,
+          expiresIn: (config.get<string>('JWT_EXPIRATION', '24h') ||
+            '24h') as `${number}h`,
         },
       }),
     }),

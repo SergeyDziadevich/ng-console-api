@@ -23,7 +23,7 @@ export class AuditService {
     } = queryDto;
     const skip = (page - 1) * limit;
 
-    const query: Record<string, any> = {};
+    const query: Record<string, unknown> = {};
 
     if (search) {
       query.$or = [
@@ -38,7 +38,7 @@ export class AuditService {
     }
 
     if (startDate || endDate) {
-      const createdAtQuery: Record<string, any> = {};
+      const createdAtQuery: Record<string, unknown> = {};
       if (startDate) {
         createdAtQuery.$gte = new Date(startDate);
       }

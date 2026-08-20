@@ -1,10 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import {
-  AuditLog,
-  SystemSettings,
-} from '@ng-console-api/database';
+import { AuditLog, SystemSettings } from '@ng-console-api/database';
 import {
   AuditLogDto,
   AuditLogEvent,
@@ -51,7 +48,9 @@ export class AuditService {
       entityId: log.entityId,
       authorId: log.authorId,
       metadata: log.metadata,
-      createdAt: log.createdAt ? (log.createdAt as Date).toISOString() : new Date().toISOString(),
+      createdAt: log.createdAt
+        ? (log.createdAt as Date).toISOString()
+        : new Date().toISOString(),
       expiresAt: log.expiresAt?.toISOString(),
     };
   }
@@ -85,7 +84,9 @@ export class AuditService {
       entityId: l.entityId,
       authorId: l.authorId,
       metadata: l.metadata,
-      createdAt: l.createdAt ? (l.createdAt as Date).toISOString() : new Date().toISOString(),
+      createdAt: l.createdAt
+        ? (l.createdAt as Date).toISOString()
+        : new Date().toISOString(),
       expiresAt: l.expiresAt?.toISOString(),
     }));
   }

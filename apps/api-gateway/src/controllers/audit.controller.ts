@@ -58,9 +58,7 @@ export class AuditGatewayController {
   }
 
   @Post('retention')
-  async setRetention(
-    @Body() dto: SetRetentionDto,
-  ): Promise<SystemSettingsDto> {
+  async setRetention(@Body() dto: SetRetentionDto): Promise<SystemSettingsDto> {
     const payload: SetRetentionCommand = {
       retentionDays: dto.retentionDays,
     };

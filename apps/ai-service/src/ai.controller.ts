@@ -20,7 +20,8 @@ export class AiController {
     try {
       return await this.aiService.generate(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'AI generation failed';
+      const message =
+        err instanceof Error ? err.message : 'AI generation failed';
       throw new RpcException({ statusCode: 500, message });
     }
   }

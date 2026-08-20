@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   HttpStatus,
   Inject,
@@ -21,7 +20,12 @@ import {
   Generate2FaSecretCommand,
   TurnOn2FaCommand,
 } from '@ng-console-api/contracts';
-import { CurrentUser, JwtAuthGuard, Public, UserContext } from '@ng-console-api/common';
+import {
+  CurrentUser,
+  JwtAuthGuard,
+  Public,
+  UserContext,
+} from '@ng-console-api/common';
 import {
   Authenticate2FaDto,
   GoogleLoginDto,

@@ -6,7 +6,7 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import * as otplib from 'otplib';
 import { OAuth2Client } from 'google-auth-library';
-import { User, UserDocument } from '@ng-console-api/database';
+import { Role, User, UserDocument } from '@ng-console-api/database';
 import {
   AuthResponseDto,
   Generate2FaResponseDto,
@@ -87,7 +87,7 @@ export class AuthService {
           username: payload.name || payload.email.split('@')[0],
           displayName: payload.name || payload.email,
           password: generatedPassword,
-          role: 'user',
+          role: Role.User,
         });
       }
 
@@ -186,7 +186,9 @@ export class AuthService {
       secret,
     });
 
-    await this.userModel.findByIdAndUpdate(userId, { twoFactorSecret: secret }).exec();
+    await this.userModel
+      .findByIdAndUpdate(userId, { twoFactorSecret: secret })
+      .exec();
     return { secret, qrCodeUrl };
   }
 
@@ -204,7 +206,9 @@ export class AuthService {
       throw new UnauthorizedException('Wrong authentication code');
     }
 
-    await this.userModel.findByIdAndUpdate(userId, { isTwoFactorEnabled: true }).exec();
+    await this.userModel
+      .findByIdAndUpdate(userId, { isTwoFactorEnabled: true })
+      .exec();
     return { success: true };
   }
 

@@ -1,11 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import {
-  Comment,
-  EpicTag,
-  Ticket,
-} from '@ng-console-api/database';
+import { Comment, EpicTag, Ticket } from '@ng-console-api/database';
 import { KafkaProducerService } from '@ng-console-api/common';
 import { TicketsController } from './tickets.controller';
 import { TicketsService } from './tickets.service';

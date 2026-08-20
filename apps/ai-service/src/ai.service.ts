@@ -19,7 +19,9 @@ export class AiService {
   ) {}
 
   async generate(cmd: AiGenerateCommand): Promise<AiGenerateResponseDto> {
-    this.logger.log(`AI query execution from user ${cmd.userId}: "${cmd.prompt}"`);
+    this.logger.log(
+      `AI query execution from user ${cmd.userId}: "${cmd.prompt}"`,
+    );
 
     const toolsUsed: string[] = [];
 
@@ -30,9 +32,13 @@ export class AiService {
     if (promptLower.includes('ticket') || promptLower.includes('issue')) {
       toolsUsed.push('getTicketsTool');
       response += ' Checked your current tickets queue: 3 open tasks found.';
-    } else if (promptLower.includes('document') || promptLower.includes('pdf')) {
+    } else if (
+      promptLower.includes('document') ||
+      promptLower.includes('pdf')
+    ) {
       toolsUsed.push('searchDocumentsTool');
-      response += ' Searched vector embeddings across uploaded business documents.';
+      response +=
+        ' Searched vector embeddings across uploaded business documents.';
     } else if (promptLower.includes('user') || promptLower.includes('member')) {
       toolsUsed.push('getUsersTool');
       response += ' Resolved user details and access control permissions.';
@@ -61,7 +67,7 @@ export class AiService {
   }
 
   async getFilesAnalytics(
-    cmd: FilesAnalyticsCommand,
+    _cmd: FilesAnalyticsCommand,
   ): Promise<FilesAnalyticsResponseDto> {
     return {
       totalFiles: 12,
