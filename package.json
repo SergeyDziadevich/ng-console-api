@@ -10,7 +10,7 @@
     "start": "nx serve api-gateway",
     "lint": "nx run-many -t lint",
     "test": "nx run-many -t test",
-    "format": "prettier --write \"{apps,libs,src,test}/**/*.ts\"",
+    "format": "prettier --write \"{apps,libs,test}/**/*.ts\"",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:e2e": "jest --config ./test/jest-e2e.json"
