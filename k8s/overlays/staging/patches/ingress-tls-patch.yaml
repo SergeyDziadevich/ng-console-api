@@ -1,0 +1,9 @@
+- op: replace
+  path: /spec/rules/0/host
+  value: staging.console.example.com
+- op: add
+  path: /spec/tls
+  value:
+    - hosts:
+        - staging.console.example.com
+      secretName: ng-console-staging-tls

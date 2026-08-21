@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ng-console
+  labels:
+    app.kubernetes.io/name: ng-console
+    app.kubernetes.io/part-of: ng-console-platform

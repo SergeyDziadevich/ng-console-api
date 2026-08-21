@@ -17,75 +17,75 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    # Setup GCP Auth (requires GCP_CREDENTIALS secret)
-    - id: 'auth'
-      uses: 'google-github-actions/auth@v2'
-      with:
-        credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+      # Setup GCP Auth (requires GCP_CREDENTIALS secret)
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
-    - name: 'Set up Cloud SDK'
-      uses: 'google-github-actions/setup-gcloud@v2'
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
 
-    - name: 'Docker auth'
-      run: |-
-        gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev
+      - name: 'Docker auth'
+        run: |-
+          gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev
 
-    - name: Build and Push Container
-      run: |-
-        docker build -t "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:${{ github.sha }}" .
-        docker push "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:${{ github.sha }}"
-        # Tag as latest
-        docker tag "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:${{ github.sha }}" "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:latest"
-        docker push "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:latest"
+      - name: Build and Push Container
+        run: |-
+          docker build -t "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:${{ github.sha }}" .
+          docker push "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:${{ github.sha }}"
+          # Tag as latest
+          docker tag "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:${{ github.sha }}" "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:latest"
+          docker push "${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:latest"
 
-    - name: Copy docker-compose and observability configs to VM
-      uses: appleboy/scp-action@master
-      with:
-        host: ${{ secrets.GCE_HOST }}
-        username: ${{ secrets.GCE_USERNAME }}
-        key: ${{ secrets.GCE_SSH_KEY }}
-        source: "docker-compose.yml,observability/"
-        target: "/tmp/backend-compose"
+      - name: Copy docker-compose and observability configs to VM
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.GCE_HOST }}
+          username: ${{ secrets.GCE_USERNAME }}
+          key: ${{ secrets.GCE_SSH_KEY }}
+          source: 'docker-compose.yml,observability/'
+          target: '/tmp/backend-compose'
 
-    - name: Deploy to Compute Engine
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.GCE_HOST }}
-        username: ${{ secrets.GCE_USERNAME }}
-        key: ${{ secrets.GCE_SSH_KEY }}
-        script: |
-          # Move the copied docker-compose.yml to the final directory
-          sudo mkdir -p /opt/app
-          sudo mv /tmp/backend-compose/docker-compose.yml /opt/app/docker-compose.yml
-          sudo rm -rf /opt/app/observability
-          sudo mv /tmp/backend-compose/observability /opt/app/observability
-          cd /opt/app
-          
-          # Securely write secrets to .env file
-          echo "GOOGLE_GENAI_API_KEY=${{ secrets.GOOGLE_GENAI_API_KEY }}" | sudo tee .env > /dev/null
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" | sudo tee -a .env > /dev/null
-          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" | sudo tee -a .env > /dev/null
-          echo "EMAIL_USER=${{ secrets.EMAIL_USER }}" | sudo tee -a .env > /dev/null
-          echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" | sudo tee -a .env > /dev/null
-          echo "SMTP_HOST=${{ secrets.SMTP_HOST }}" | sudo tee -a .env > /dev/null
-          echo "SMTP_PORT=${{ secrets.SMTP_PORT }}" | sudo tee -a .env > /dev/null
-          echo "SMTP_SECURE=${{ secrets.SMTP_SECURE }}" | sudo tee -a .env > /dev/null
-          echo "EMAIL_FROM=${{ secrets.EMAIL_FROM }}" | sudo tee -a .env > /dev/null
-          echo "GRAFANA_ADMIN_PASSWORD=${{ secrets.GRAFANA_ADMIN_PASSWORD }}" | sudo tee -a .env > /dev/null
-          
-          # Authenticate docker with GCP (if not already authenticated)
-          gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev --quiet
-          
-          # Ensure the shared network exists
-          sudo docker network create app-network || true
-          
-          # Export variables and restart docker-compose
-          export DOCKER_IMAGE_API="${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:latest"
-          sudo -E docker compose pull ng-console-api
-          sudo -E docker compose up -d ng-console-api prometheus grafana
-          
-          # Clean up old unused docker images to prevent disk space exhaustion
-          sudo docker image prune -af
+      - name: Deploy to Compute Engine
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.GCE_HOST }}
+          username: ${{ secrets.GCE_USERNAME }}
+          key: ${{ secrets.GCE_SSH_KEY }}
+          script: |
+            # Move the copied docker-compose.yml to the final directory
+            sudo mkdir -p /opt/app
+            sudo mv /tmp/backend-compose/docker-compose.yml /opt/app/docker-compose.yml
+            sudo rm -rf /opt/app/observability
+            sudo mv /tmp/backend-compose/observability /opt/app/observability
+            cd /opt/app
+
+            # Securely write secrets to .env file
+            echo "GOOGLE_GENAI_API_KEY=${{ secrets.GOOGLE_GENAI_API_KEY }}" | sudo tee .env > /dev/null
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" | sudo tee -a .env > /dev/null
+            echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" | sudo tee -a .env > /dev/null
+            echo "EMAIL_USER=${{ secrets.EMAIL_USER }}" | sudo tee -a .env > /dev/null
+            echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" | sudo tee -a .env > /dev/null
+            echo "SMTP_HOST=${{ secrets.SMTP_HOST }}" | sudo tee -a .env > /dev/null
+            echo "SMTP_PORT=${{ secrets.SMTP_PORT }}" | sudo tee -a .env > /dev/null
+            echo "SMTP_SECURE=${{ secrets.SMTP_SECURE }}" | sudo tee -a .env > /dev/null
+            echo "EMAIL_FROM=${{ secrets.EMAIL_FROM }}" | sudo tee -a .env > /dev/null
+            echo "GRAFANA_ADMIN_PASSWORD=${{ secrets.GRAFANA_ADMIN_PASSWORD }}" | sudo tee -a .env > /dev/null
+
+            # Authenticate docker with GCP (if not already authenticated)
+            gcloud auth configure-docker ${{ env.GAR_LOCATION }}-docker.pkg.dev --quiet
+
+            # Ensure the shared network exists
+            sudo docker network create app-network || true
+
+            # Export variables and restart docker-compose
+            export DOCKER_IMAGE_API="${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:latest"
+            sudo -E docker compose pull ng-console-api
+            sudo -E docker compose up -d ng-console-api prometheus grafana
+
+            # Clean up old unused docker images to prevent disk space exhaustion
+            sudo docker image prune -af

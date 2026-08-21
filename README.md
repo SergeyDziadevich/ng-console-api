@@ -3,135 +3,132 @@
 </p>
 <p align="center">
   <a href="https://kafka.apache.org/" target="blank" title="Apache Kafka"><img src="https://www.vectorlogo.zone/logos/apache_kafka/apache_kafka-icon.svg" width="60" alt="Kafka Logo" style="vertical-align: middle;" /></a>
-  <a href="https://graphql.org/" target="blank" title="GraphQL"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/GraphQL_Logo.svg" width="60" alt="GraphQL Logo" style="vertical-align: middle;" /></a>
   <a href="https://redis.io/" target="blank" title="Redis"><img src="https://www.vectorlogo.zone/logos/redis/redis-icon.svg" width="60" alt="Redis Logo" style="vertical-align: middle;" /></a>
   <a href="https://www.postgresql.org/" target="blank" title="PostgreSQL"><img src="https://www.vectorlogo.zone/logos/postgresql/postgresql-icon.svg" width="60" alt="PostgreSQL Logo" style="vertical-align: middle;" /></a>
   <a href="https://www.mongodb.com/" target="blank" title="MongoDB"><img src="https://www.vectorlogo.zone/logos/mongodb/mongodb-icon.svg" width="60" alt="MongoDB Logo" style="vertical-align: middle;" /></a>
+  <a href="https://kubernetes.io/" target="blank" title="Kubernetes"><img src="https://www.vectorlogo.zone/logos/kubernetes/kubernetes-icon.svg" width="60" alt="Kubernetes Logo" style="vertical-align: middle;" /></a>
 </p>
 
-<p align="center">
-    <a href="https://typeorm.io/" target="blank" title="TypeORM"><img src="https://raw.githubusercontent.com/typeorm/typeorm/master/resources/logo_big.png" width="60" alt="TypeORM Logo" style="vertical-align: middle;" /></a>
-    <a href="https://mongoosejs.com/" target="blank" title="Mongoose"><img src="https://raw.githubusercontent.com/github/explore/80688e429a7d4ef2fca1e82350fe8e3517d3494d/topics/mongoose/mongoose.png" width="60" alt="Mongoose Logo" style="vertical-align: middle;" /></a>
-    <a href="https://prometheus.io/" target="blank" title="Prometheus"><img src="https://www.vectorlogo.zone/logos/prometheusio/prometheusio-icon.svg" width="50" alt="Prometheus Logo" style="vertical-align: middle;" /></a>
-    <a href="https://grafana.com/" target="blank" title="Grafana"><img src="https://www.vectorlogo.zone/logos/grafana/grafana-icon.svg" width="50" alt="Grafana Logo" style="vertical-align: middle;" /></a>
-</p>
+# NgConsole API (Microservices Monorepo)
 
-
-
-
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-## Description
-
-A robust NestJS backend application providing the core API for the Cloud Console ecosystem.
-
-![Application Composition Graph](architecture/app-composition-graph.png)
+NgConsole API is an enterprise-grade backend platform built with **NestJS**, **Nx**, and a decoupled **Microservices Architecture**. It powers the Cloud Console ecosystem with high-throughput API Gateway routing, synchronous Redis/TCP inter-service RPC, asynchronous Kafka event streaming, and native Kubernetes deployment.
 
 **Frontend Application:** [ng-console](https://github.com/SergeyDziadevich/ng-console)
 
-**Main Features:**
-- **Comprehensive API:** Support for both REST and GraphQL endpoints.
-- **Authentication & Authorization:** Secure user management with JWT, Google OAuth2, Role-based Access Control (RBAC), and Two-Factor Authentication (2FA).
-- **Subscription & Payment Processing:** Fully integrated with Stripe for managing premium plans, verifying checkout sessions, and securely handling Stripe webhooks (utilizing raw body parsing for cryptographic signature verification).
-- **Document Storage, Sharing, Signing & Generation:** Secure file uploads to Google Cloud Storage (GCS), public sharing capabilities via generated short links, built-in PDF document signing, and dynamic PDF document generation from templates.
-- **Google Drive Integration:** Automated Document Backup — Securely connect users to their personal Google Drive accounts using native OAuth2, enabling automated backups and real-time synchronization of all generated documents.
-- **Audit Logging System:** Comprehensive audit trailing for critical user and AI Agent actions, backed by MongoDB and asynchronous Kafka streaming, featuring customizable data retention policies, live WebSocket broadcasts, and filtering.
-- **Real-Time Communication:** Live chat and real-time notifications powered by Socket.IO and Redis Streams.
-- **AI Integration:** AI Assistant capabilities utilizing Firebase Genkit. Features include Document RAG (Retrieval-Augmented Generation) search via vector embeddings, and full integration with the audit logging system to track prompts, responses, and tool executions.
-- **Message Broker & Asynchronous Processing:** Integrated with Apache Kafka for scalable, decoupled background tasks (e.g., distributing email notifications for support tickets).
-- **Email Service:** Reusable email module for sending notifications and templates via Nodemailer, powered by a Kafka consumer architecture.
-- **Support & Ticketing:** Full ticket management system for user support, utilizing Kafka to trigger asynchronous actions.
-- **Multi-Database Support:** Integrated with MongoDB (Mongoose) for document storage and PostgreSQL (TypeORM) for relational data.
-- **Caching & Performance:** High-performance caching layer using Redis.
-- **Observability:** Prometheus integration for metrics scraping and Grafana for system monitoring and dashboards.
+---
 
-## Audit Logging & AI Auditing
+## Architecture Overview
 
-The system features a comprehensive, asynchronous audit logging system powered by **Apache Kafka** and **MongoDB**. Critical user and system actions are tracked to maintain a complete history of system activity.
+The backend repository is organized as an Nx monorepo comprising an API Gateway, 11 dedicated domain microservices, and 3 shared libraries:
 
-### AI Assistant Auditing
-All interactions with the AI Assistant are fully audited, keeping a clear record of user queries and the agent's actions:
-- **User Queries**: Automatically logged with the action `AI_ASSISTANT_PROMPT`, containing the prompt content. The `authorId` is populated with the authenticated user's identity (e.g., `username (userId)`).
-- **AI Agent Responses**: Logged with the action `AI_ASSISTANT_RESPONSE` containing the agent's output, authored by `AI AGENT`.
-- **Tool Invocations**: Any internal tool executed by the agent (such as fetching users, posts, tickets, or weather) generates an `AI_AGENT_TOOL_CALL` audit log showing the tool name and input parameters, authored by `AI AGENT`.
-- **System Modifications**: When the AI Agent modifies data in bulk (e.g., updating ticket statuses), it logs a `TICKET_BULK_UPDATED` action under the `AI AGENT` author.
-
-## Docker Infrastructure
-
-This project relies on Docker Compose to run local dependencies:
-- **Redis:** Used for caching and real-time streams.
-- **Apache Kafka & Zookeeper:** Used for event streaming and message queues.
-- **Kafka UI:** Web-based interface to monitor the Kafka cluster (available at `http://localhost:8080`).
-- **Prometheus:** Collects metrics from the API (available at `http://localhost:9090`).
-- **Grafana:** Visualizes metrics collected by Prometheus (available at `http://localhost:3001`, default login: `admin`/`admin`).
-
-To start the infrastructure:
-```bash
-$ docker-compose up -d
+```
+ng-console-api/
+├── apps/
+│   ├── api-gateway/          # REST API Gateway & Reverse Proxy (port 3000)
+│   ├── auth-service/         # JWT, 2FA, Google OAuth2 & RBAC
+│   ├── user-service/         # User Profiles & Account Management
+│   ├── ticket-service/       # Support Ticketing & Lifecycle
+│   ├── document-service/     # Document Upload, Signing, RAG & Templates
+│   ├── payment-service/      # Stripe Checkout, Subscriptions & Webhooks
+│   ├── chat-service/         # Real-Time Messaging & Chat History
+│   ├── notification-service/ # WebSocket Broadcasts & Alerts
+│   ├── mailer-service/       # Nodemailer Email Templating
+│   ├── audit-service/        # Audit Trails & AI Agent Action Logging
+│   ├── ai-service/           # Firebase Genkit AI & RAG Embeddings
+│   └── customer-service/     # Customer CRM & Metadata
+├── libs/
+│   ├── common/               # Shared Guards, Interceptors, Filters & Decorators
+│   ├── contracts/            # Message Patterns, Event DTOs & Contracts
+│   └── database/             # TypeORM Entities, Mongoose Schemas & Repositories
+└── k8s/                      # Kubernetes Base Manifests & Kustomize Overlays
 ```
 
-## Project setup
+---
+
+## Inter-Service Communication
+
+1. **Synchronous RPC (Request-Response)**:
+   - Utilizes NestJS Microservice transports (TCP / Redis) for fast, low-latency inter-service queries and commands.
+2. **Asynchronous Event Streaming (Pub/Sub)**:
+   - Apache Kafka brokers process domain events (e.g., `user.created`, `ticket.updated`, `document.signed`, `audit.logged`) with schema validation and error-handling dead-letter paths.
+
+---
+
+## Key Features
+
+- **Decoupled Microservices**: 11 isolated domain microservices running independent processes.
+- **Strict TypeScript**: 100% type-safe contracts with zero `any` types across all source code and test files.
+- **Audit & AI Auditing**: Complete audit tracking for user events and AI assistant tool calls backed by MongoDB and Kafka.
+- **Multi-Database Support**: PostgreSQL (TypeORM) for relational business domains and MongoDB (Mongoose) for document stores and audit logs.
+- **Observability**: Prometheus metrics scraping (`/metrics`) and Grafana monitoring dashboards.
+- **Container Security**: Multi-stage Dockerfiles running as unprivileged `USER node` (UID 1000) with `dumb-init` (PID 1).
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- **Node.js**: `v20.x` or `v22.x`
+- **Docker & Docker Compose**: For local infrastructure services (Redis, Kafka, PostgreSQL, MongoDB)
+
+### Installation
 
 ```bash
-$ npm install
+# Install dependencies
+npm install
 ```
 
-## Local Development Workflow
+### Local Infrastructure Setup
 
-When developing locally, it is recommended to run the API on your host machine while running the supporting infrastructure (databases, message brokers, observability tools) in Docker.
-
-**1. Start the Infrastructure**
-Start all infrastructure services *except* the API container:
-```bash
-$ docker-compose up -d redis zookeeper kafka kafka-ui mongo postgres prometheus grafana
-```
-
-**2. Start the API**
-Run the NestJS application in watch mode on your local machine:
-```bash
-$ npm run start:dev
-```
-*Note: Prometheus is configured to successfully scrape metrics from your locally running API via `host.docker.internal`.*
-
-## Compile and run the project
+Start the local backing services via Docker Compose:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+docker-compose up -d redis zookeeper kafka kafka-ui mongo postgres prometheus grafana
 ```
 
-## Run tests
+### Running Locally
 
 ```bash
-# unit tests
-$ npm run test
+# Start the API Gateway (http://localhost:3000)
+npx nx serve api-gateway
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+# Start all microservices in watch mode
+npx nx run-many -t serve
 ```
 
-## Deployment
+---
 
-This project uses **GitHub Actions** for automated CI/CD to **Google Cloud Platform (GCP) Compute Engine**.
+## Workspace Commands
 
-The deployment workflow (`.github/workflows/deploy.yml`) is triggered automatically on pushes to the `main` branch.
+| Command | Description |
+|---|---|
+| `npx nx serve api-gateway` | Start the API Gateway |
+| `npx nx serve <service-name>` | Start a specific microservice (e.g., `auth-service`) |
+| `npx nx run-many -t build` | Build all microservices and shared libraries |
+| `npx nx run-many -t test` | Run unit tests across all workspace projects |
+| `npx nx run-many -t lint` | Run ESLint across all projects |
 
-### Deployment Pipeline Overview:
-1. **Build & Publish:** The application is built into a Docker image and pushed to **Google Artifact Registry**.
-2. **Transfer:** The `docker-compose.yml` file is securely transferred to the target GCE VM via SCP.
-3. **Deploy:** The updated Docker image is pulled on the VM, and `docker compose up -d` restarts the application along with Prometheus and Grafana.
+---
 
+## Kubernetes Deployment
+
+Deploy the entire backend ecosystem using Kustomize:
+
+```bash
+# Build Docker image
+docker build -f Dockerfile.backend -t ng-console-api:latest .
+
+# Deploy local development overlay
+kubectl apply -k k8s/overlays/local
+
+# Deploy staging overlay
+kubectl apply -k k8s/overlays/staging
+```
+
+---
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project is licensed under the [MIT License](LICENSE).
+

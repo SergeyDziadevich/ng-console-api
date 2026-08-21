@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-assistant-mfe
+  namespace: ng-console
+  labels:
+    app: ai-assistant-mfe
+    app.kubernetes.io/name: ai-assistant-mfe
+    app.kubernetes.io/part-of: ng-console
+    app.kubernetes.io/component: micro-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ai-assistant-mfe
+  template:
+    metadata:
+      labels:
+        app: ai-assistant-mfe
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        fsGroup: 101
+      containers:
+        - name: ai-assistant-mfe
+          image: ng-console-ai-assistant-mfe:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5

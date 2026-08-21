@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: document-service
+  namespace: ng-console
+  labels:
+    app: document-service
+    app.kubernetes.io/name: document-service
+    app.kubernetes.io/part-of: ng-console
+spec:
+  type: ClusterIP
+  ports:
+    - port: 4004
+      targetPort: 4004
+      name: tcp-rpc
+  selector:
+    app: document-service

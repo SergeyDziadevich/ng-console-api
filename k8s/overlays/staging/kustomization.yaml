@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ng-console-staging
+
+resources:
+  - ../../base
+
+patches:
+  - target:
+      kind: Deployment
+    path: patches/replicas-staging-patch.yaml
+  - target:
+      kind: Ingress
+      name: ng-console-ingress
+    path: patches/ingress-tls-patch.yaml
+  - target:
+      kind: Deployment
+      name: api-gateway
+    path: patches/api-gateway-resources.yaml
+  - target:
+      kind: Deployment
+      name: shell
+    path: patches/shell-resources.yaml

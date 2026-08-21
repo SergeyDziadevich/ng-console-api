@@ -7,7 +7,7 @@ services:
       - '6380:6379'
     command: ['redis-server', '--appendonly', 'yes']
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       timeout: 3s
       retries: 10
@@ -21,7 +21,7 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
-      - "2181:2181"
+      - '2181:2181'
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
@@ -43,7 +43,7 @@ services:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
     ports:
-      - "8080:8080"
+      - '8080:8080'
     environment:
       - KAFKA_CLUSTERS_0_NAME=local
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:29092
@@ -55,7 +55,7 @@ services:
     image: mongo:latest
     container_name: nest-dws-mongo
     ports:
-      - "27017:27017"
+      - '27017:27017'
 
   postgres:
     image: postgres:15
@@ -65,14 +65,14 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: tickets_db
     ports:
-      - "5432:5432"
+      - '5432:5432'
 
   ng-console-api:
     image: ${DOCKER_IMAGE_API:-api-local:latest}
     build: .
     container_name: ng-console-api
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - KAFKA_BROKER=kafka:29092
       - REDIS_HOST=redis
@@ -105,7 +105,7 @@ services:
     image: prom/prometheus:latest
     container_name: prometheus
     ports:
-      - "9090:9090"
+      - '9090:9090'
     volumes:
       - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
 
@@ -113,14 +113,14 @@ services:
     image: grafana/grafana:latest
     container_name: grafana
     ports:
-      - "3001:3000"
+      - '3001:3000'
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
     volumes:
       - ./observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
       - ./observability/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
 volumes:
-    nest-dws-redisdata:
+  nest-dws-redisdata:
 
 networks:
   default:

@@ -1,0 +1,36 @@
+{
+  "name": "mailer-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/mailer-service/src",
+  "projectType": "application",
+  "tags": ["scope:mailer", "type:microservice"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/mailer-service",
+        "main": "apps/mailer-service/src/main.ts",
+        "tsConfig": "apps/mailer-service/tsconfig.app.json",
+        "assets": ["apps/mailer-service/src/assets"]
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "mailer-service:build"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/apps/mailer-service"],
+      "options": {
+        "jestConfig": "apps/mailer-service/jest.config.ts"
+      }
+    }
+  }
+}

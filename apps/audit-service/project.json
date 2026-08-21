@@ -1,0 +1,36 @@
+{
+  "name": "audit-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/audit-service/src",
+  "projectType": "application",
+  "tags": ["scope:audit", "type:microservice"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/audit-service",
+        "main": "apps/audit-service/src/main.ts",
+        "tsConfig": "apps/audit-service/tsconfig.app.json",
+        "assets": ["apps/audit-service/src/assets"]
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "audit-service:build"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/apps/audit-service"],
+      "options": {
+        "jestConfig": "apps/audit-service/jest.config.ts"
+      }
+    }
+  }
+}

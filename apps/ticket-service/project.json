@@ -1,0 +1,36 @@
+{
+  "name": "ticket-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/ticket-service/src",
+  "projectType": "application",
+  "tags": ["scope:tickets", "type:microservice"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/ticket-service",
+        "main": "apps/ticket-service/src/main.ts",
+        "tsConfig": "apps/ticket-service/tsconfig.app.json",
+        "assets": ["apps/ticket-service/src/assets"]
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "ticket-service:build"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/apps/ticket-service"],
+      "options": {
+        "jestConfig": "apps/ticket-service/jest.config.ts"
+      }
+    }
+  }
+}

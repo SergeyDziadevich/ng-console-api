@@ -5,13 +5,13 @@ This diagram illustrates the overall system architecture, including the Angular 
 ```mermaid
 flowchart TD
     User([User]) -->|HTTP/Web| Frontend["Angular Frontend<br/>(ng-console)"]
-    
+
     subgraph ApplicationStack [Application Stack]
         Frontend
-        
+
         subgraph Backend [NestJS Backend API]
             Gateway[API Gateway / Controllers]
-            
+
             mAuth[Auth Module]
             mUsers[Users Module]
             mTickets[Tickets Module]
@@ -21,7 +21,7 @@ flowchart TD
             mIntegration[Integrations Module]
             mAI[AI Module]
             mEmail[Email Module]
-            
+
             Gateway --> mAuth & mUsers & mTickets & mChat & mPayments & mDocs & mIntegration & mAI & mEmail
         end
     end
@@ -35,7 +35,7 @@ flowchart TD
         Stripe["Stripe API"]
         GoogleDrive["Google Drive API"]
     end
-    
+
     mAI --> GenAI
     mEmail --> SMTP
     mPayments --> Stripe
@@ -47,29 +47,29 @@ flowchart TD
         Postgres[("PostgreSQL")]
         VectorDB[("Vector DB")]
     end
-    
+
     mChat --> Redis
     mUsers --> Mongo
     mDocs --> Mongo
     mDocs -.-> VectorDB
     mTickets --> Postgres
     mAI --> VectorDB
-    
+
     subgraph EventStreaming [Event Streaming]
         Kafka["Kafka Broker"]
         Zookeeper["Zookeeper"]
         KafkaUI["Kafka UI"] -.->|Monitor| Kafka
     end
-    
+
     mTickets -->|Pub/Sub| Kafka
     mEmail -->|Listen| Kafka
     Kafka --> Zookeeper
-    
+
     subgraph Observability
         Prometheus["Prometheus"]
         Grafana["Grafana"]
     end
-    
+
     Prometheus -->|Scrape| Gateway
     Grafana -->|Visualize| Prometheus
 ```

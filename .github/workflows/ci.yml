@@ -2,32 +2,48 @@ name: CI
 
 on:
   push:
-    branches: [ "master", "main" ]
+    branches: ['master', 'main']
   pull_request:
-    branches: [ "master", "main" ]
+    branches: ['master', 'main']
 
 jobs:
-  build:
+  affected-ci:
+    name: Lint, Typecheck, Test, and Build
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [24.x]
-
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Run lint
-      run: npm run lint
-      
-    - name: Run test
-      run: npm run test
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure Nx SHAs
+        uses: nrwl/nx-set-shas@v4
+
+      - name: TypeScript Typecheck
+        run: npm run typecheck
+
+      - name: Run Affected Linters
+        run: npx nx affected -t lint --parallel=3
+
+      - name: Run Affected Unit Tests
+        run: npx nx affected -t test --parallel=3
+
+      - name: Run Affected Builds
+        run: npx nx affected -t build --parallel=3
+
+      - name: Validate Kubernetes Manifests
+        run: |
+          kubectl kustomize k8s/base > /dev/null
+          kubectl kustomize k8s/overlays/local > /dev/null
+          kubectl kustomize k8s/overlays/staging > /dev/null
+          echo "✓ All Kubernetes overlays rendered cleanly"

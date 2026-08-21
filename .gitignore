@@ -3,6 +3,10 @@
 /node_modules
 /build
 
+# Nx cache
+.nx/cache
+.nx/workspace-data
+
 # Logs
 logs
 *.log
@@ -14,6 +18,8 @@ lerna-debug.log*
 
 .genkit/
 tasks.json
+
+.agents
 
 # OS
 .DS_Store

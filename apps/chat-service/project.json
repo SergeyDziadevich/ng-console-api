@@ -1,0 +1,36 @@
+{
+  "name": "chat-service",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/chat-service/src",
+  "projectType": "application",
+  "tags": ["scope:chat", "type:microservice"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/chat-service",
+        "main": "apps/chat-service/src/main.ts",
+        "tsConfig": "apps/chat-service/tsconfig.app.json",
+        "assets": ["apps/chat-service/src/assets"]
+      }
+    },
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "chat-service:build"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"]
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/apps/chat-service"],
+      "options": {
+        "jestConfig": "apps/chat-service/jest.config.ts"
+      }
+    }
+  }
+}
