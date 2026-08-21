@@ -24,7 +24,12 @@ import {
   UpdateUserSettingsCommand,
   CreatePostCommand,
 } from '@ng-console-api/contracts';
-import { CurrentUser, JwtAuthGuard, Public, UserContext } from '@ng-console-api/common';
+import {
+  CurrentUser,
+  JwtAuthGuard,
+  Public,
+  UserContext,
+} from '@ng-console-api/common';
 import {
   CreatePostDto,
   CreateUserDto,
@@ -70,20 +75,18 @@ export class UsersGatewayController {
   @Get('me')
   async getProfile(@CurrentUser() user: UserContext): Promise<UserDto> {
     return firstValueFrom(
-      this.userClient.send<UserDto, { id: string }>(
-        USER_PATTERNS.FIND_BY_ID,
-        { id: user.id },
-      ),
+      this.userClient.send<UserDto, { id: string }>(USER_PATTERNS.FIND_BY_ID, {
+        id: user.id,
+      }),
     );
   }
 
   @Get(':id')
   async findById(@Param('id') id: string): Promise<UserDto> {
     return firstValueFrom(
-      this.userClient.send<UserDto, { id: string }>(
-        USER_PATTERNS.FIND_BY_ID,
-        { id },
-      ),
+      this.userClient.send<UserDto, { id: string }>(USER_PATTERNS.FIND_BY_ID, {
+        id,
+      }),
     );
   }
 
@@ -108,10 +111,7 @@ export class UsersGatewayController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteUser(@Param('id') id: string): Promise<void> {
     await firstValueFrom(
-      this.userClient.send<void, { id: string }>(
-        USER_PATTERNS.DELETE,
-        { id },
-      ),
+      this.userClient.send<void, { id: string }>(USER_PATTERNS.DELETE, { id }),
     );
   }
 

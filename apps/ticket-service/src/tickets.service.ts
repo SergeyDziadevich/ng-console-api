@@ -44,7 +44,9 @@ export class TicketsService {
     });
 
     if (cmd.epicTagId) {
-      const epic = await this.epicTagRepo.findOneBy({ id: Number(cmd.epicTagId) });
+      const epic = await this.epicTagRepo.findOneBy({
+        id: Number(cmd.epicTagId),
+      });
       if (epic) {
         ticket.epic = epic;
       }
@@ -94,7 +96,7 @@ export class TicketsService {
 
   async findAll(): Promise<TicketDto[]> {
     const tickets = await this.ticketRepo.find({
-      relations: ['epic', 'comments'],
+      relations: { epic: true, comments: true },
       order: { createdAt: 'DESC' },
     });
     return tickets.map((t) => this.mapToTicketDto(t));
@@ -103,7 +105,7 @@ export class TicketsService {
   async findById(id: string): Promise<TicketDto> {
     const ticket = await this.ticketRepo.findOne({
       where: { id },
-      relations: ['epic', 'comments'],
+      relations: { epic: true, comments: true },
     });
     if (!ticket) {
       throw new NotFoundException(`Ticket with ID ${id} not found`);
@@ -114,7 +116,7 @@ export class TicketsService {
   async updateTicket(cmd: UpdateTicketCommand): Promise<TicketDto> {
     const ticket = await this.ticketRepo.findOne({
       where: { id: cmd.id },
-      relations: ['epic', 'comments'],
+      relations: { epic: true, comments: true },
     });
     if (!ticket) {
       throw new NotFoundException(`Ticket with ID ${cmd.id} not found`);
@@ -123,13 +125,19 @@ export class TicketsService {
     const oldAssignee = ticket.assignedPersonId;
 
     if (cmd.data.title !== undefined) ticket.title = cmd.data.title;
-    if (cmd.data.description !== undefined) ticket.description = cmd.data.description;
-    if (cmd.data.status !== undefined) ticket.status = cmd.data.status as TicketStatus;
-    if (cmd.data.priority !== undefined) ticket.priority = cmd.data.priority as TicketPriority;
-    if (cmd.data.assignedTo !== undefined) ticket.assignedPersonId = cmd.data.assignedTo;
+    if (cmd.data.description !== undefined)
+      ticket.description = cmd.data.description;
+    if (cmd.data.status !== undefined)
+      ticket.status = cmd.data.status as TicketStatus;
+    if (cmd.data.priority !== undefined)
+      ticket.priority = cmd.data.priority as TicketPriority;
+    if (cmd.data.assignedTo !== undefined)
+      ticket.assignedPersonId = cmd.data.assignedTo;
 
     if (cmd.data.epicTagId !== undefined) {
-      const epic = await this.epicTagRepo.findOneBy({ id: Number(cmd.data.epicTagId) });
+      const epic = await this.epicTagRepo.findOneBy({
+        id: Number(cmd.data.epicTagId),
+      });
       if (epic) {
         ticket.epic = epic;
       }
@@ -169,7 +177,10 @@ export class TicketsService {
     return this.mapToTicketDto(updated, cmd.updatedBy);
   }
 
-  async deleteTicket(id: string, authorId?: string): Promise<{ deleted: boolean }> {
+  async deleteTicket(
+    id: string,
+    authorId?: string,
+  ): Promise<{ deleted: boolean }> {
     const ticket = await this.ticketRepo.findOneBy({ id });
     if (!ticket) {
       throw new NotFoundException(`Ticket with ID ${id} not found`);
@@ -237,7 +248,9 @@ export class TicketsService {
     }));
   }
 
-  async bulkUpdate(cmd: BulkUpdateTicketsCommand): Promise<{ updatedCount: number }> {
+  async bulkUpdate(
+    cmd: BulkUpdateTicketsCommand,
+  ): Promise<{ updatedCount: number }> {
     const result = await this.ticketRepo.update(
       { id: In(cmd.ticketIds) },
       { status: cmd.status as TicketStatus },

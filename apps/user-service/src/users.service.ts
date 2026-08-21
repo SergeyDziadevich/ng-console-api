@@ -1,14 +1,17 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import {
   Post,
-  PostDocument,
+  Role,
   User,
   UserDocument,
   UserSettings,
-  UserSettingsDocument,
 } from '@ng-console-api/database';
 import {
   CreatePostCommand,
@@ -28,12 +31,15 @@ export class UsersService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @InjectModel(UserSettings.name)
-    private readonly userSettingsModel: Model<UserSettingsDocument>,
-    @InjectModel(Post.name) private readonly postModel: Model<PostDocument>,
+    private readonly userSettingsModel: Model<UserSettings>,
+    @InjectModel(Post.name) private readonly postModel: Model<Post>,
     private readonly kafkaProducer: KafkaProducerService,
   ) {}
 
-  async createUser(cmd: CreateUserCommand, authorId?: string): Promise<UserDto> {
+  async createUser(
+    cmd: CreateUserCommand,
+    authorId?: string,
+  ): Promise<UserDto> {
     try {
       const password = cmd.password || 'TemporaryPassword123!';
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -42,7 +48,7 @@ export class UsersService {
         email: cmd.email,
         username: cmd.username,
         password: hashedPassword,
-        role: cmd.role || 'user',
+        role: cmd.role ? (cmd.role as Role) : Role.User,
         isTwoFactorEnabled: cmd.isTwoFactorEnable ?? false,
       });
 
@@ -53,7 +59,11 @@ export class UsersService {
         role: user.role,
         createdAt: new Date().toISOString(),
       };
-      await this.kafkaProducer.emit(KAFKA_TOPICS.USER_CREATED, event, String(user._id));
+      await this.kafkaProducer.emit(
+        KAFKA_TOPICS.USER_CREATED,
+        event,
+        String(user._id),
+      );
 
       await this.kafkaProducer.emit(
         KAFKA_TOPICS.AUDIT_LOGS,
@@ -76,19 +86,29 @@ export class UsersService {
         'code' in error &&
         (error as { code: number }).code === 11000
       ) {
-        throw new ConflictException('A user with that email or username already exists');
+        throw new ConflictException(
+          'A user with that email or username already exists',
+        );
       }
       throw error;
     }
   }
 
   async findAll(): Promise<UserDto[]> {
-    const users = await this.userModel.find().populate('settings').populate('posts').exec();
+    const users = await this.userModel
+      .find()
+      .populate('settings')
+      .populate('posts')
+      .exec();
     return users.map((u) => this.mapToUserDto(u));
   }
 
   async findById(id: string): Promise<UserDto> {
-    const user = await this.userModel.findById(id).populate('settings').populate('posts').exec();
+    const user = await this.userModel
+      .findById(id)
+      .populate('settings')
+      .populate('posts')
+      .exec();
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
@@ -100,7 +120,10 @@ export class UsersService {
     return user ? this.mapToUserDto(user) : null;
   }
 
-  async updateUser(cmd: UpdateUserCommand, authorId?: string): Promise<UserDto> {
+  async updateUser(
+    cmd: UpdateUserCommand,
+    authorId?: string,
+  ): Promise<UserDto> {
     const user = await this.userModel
       .findByIdAndUpdate(cmd.id, { $set: cmd.data }, { new: true })
       .exec();
@@ -125,7 +148,10 @@ export class UsersService {
     return this.mapToUserDto(user);
   }
 
-  async deleteUser(id: string, authorId?: string): Promise<{ deleted: boolean }> {
+  async deleteUser(
+    id: string,
+    authorId?: string,
+  ): Promise<{ deleted: boolean }> {
     const result = await this.userModel.deleteOne({ _id: id }).exec();
     if (result.deletedCount === 0) {
       throw new NotFoundException(`User with ID ${id} not found`);
@@ -148,11 +174,14 @@ export class UsersService {
   }
 
   async getSettings(userId: string): Promise<UserSettingsDto> {
-    const user = await this.userModel.findById(userId).populate('settings').exec();
+    const user = await this.userModel
+      .findById(userId)
+      .populate('settings')
+      .exec();
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
-    const settings = user.settings as UserSettingsDocument | undefined;
+    const settings = user.settings as UserSettings | undefined;
     return {
       userId,
       notificationsEnabled: settings?.receiveNotifications ?? true,
@@ -160,7 +189,9 @@ export class UsersService {
     };
   }
 
-  async updateSettings(cmd: UpdateUserSettingsCommand): Promise<UserSettingsDto> {
+  async updateSettings(
+    cmd: UpdateUserSettingsCommand,
+  ): Promise<UserSettingsDto> {
     const user = await this.userModel.findById(cmd.userId).exec();
     if (!user) {
       throw new NotFoundException(`User with ID ${cmd.userId} not found`);
@@ -218,7 +249,9 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
-    const posts = (user.posts || []) as unknown as PostDocument[];
+    const posts = (user.posts || []) as unknown as (Post & {
+      _id: Types.ObjectId | string;
+    })[];
     return posts.map((p) => ({
       id: String(p._id),
       userId,

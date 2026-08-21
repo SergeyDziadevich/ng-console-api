@@ -128,7 +128,7 @@ export class DocumentsController {
     await this.documentsService.signExternal(
       token,
       signatureName,
-      signatureImage
+      signatureImage,
     );
     return { success: true, message: 'Document fully signed' };
   }
@@ -196,7 +196,12 @@ export class DocumentsController {
     if (!externalEmail) {
       throw new ForbiddenException('External email is required');
     }
-    await this.documentsService.inviteToSign(id, req.user.sub, req.user.role, externalEmail);
+    await this.documentsService.inviteToSign(
+      id,
+      req.user.sub,
+      req.user.role,
+      externalEmail,
+    );
     return { success: true, message: 'Invitation sent' };
   }
 

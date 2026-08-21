@@ -59,7 +59,9 @@ export class HttpRpcExceptionFilter implements ExceptionFilter {
       message = exception;
     }
 
-    this.logger.error(`Exception handled: status ${status}, message: ${JSON.stringify(message)}`);
+    this.logger.error(
+      `Exception handled: status ${status}, message: ${JSON.stringify(message)}`,
+    );
 
     response.status(status).json({
       statusCode: status,

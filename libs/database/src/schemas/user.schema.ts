@@ -9,7 +9,7 @@ import { Role } from './role.enum';
 @Schema({ timestamps: true })
 export class User {
   @Field(() => ID)
-  _id: string;
+  _id?: mongoose.Types.ObjectId | string;
 
   @Field()
   @Prop({ unique: true, required: true })

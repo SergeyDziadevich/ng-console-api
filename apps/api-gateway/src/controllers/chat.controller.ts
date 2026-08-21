@@ -123,7 +123,9 @@ export class ChatGatewayController {
   }
 
   @Delete('rooms/:roomId')
-  async deleteRoom(@Param('roomId') roomId: string): Promise<{ success: boolean }> {
+  async deleteRoom(
+    @Param('roomId') roomId: string,
+  ): Promise<{ success: boolean }> {
     return firstValueFrom(
       this.chatClient.send<{ success: boolean }, { roomId: string }>(
         CHAT_PATTERNS.DELETE_ROOM,

@@ -7,7 +7,10 @@ interface RequestWithUser {
 }
 
 export const CurrentUser = createParamDecorator(
-  (data: keyof UserContext | undefined, ctx: ExecutionContext): UserContext | string | undefined => {
+  (
+    data: keyof UserContext | undefined,
+    ctx: ExecutionContext,
+  ): UserContext | string | undefined => {
     let req: RequestWithUser | undefined;
     if (ctx.getType<string>() === 'graphql') {
       const gqlCtx = GqlExecutionContext.create(ctx);

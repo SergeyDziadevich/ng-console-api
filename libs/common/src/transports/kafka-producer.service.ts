@@ -82,9 +82,7 @@ export class KafkaProducerService
       try {
         await this.producer.disconnect();
       } catch (err: unknown) {
-        this.logger.warn(
-          `Kafka producer disconnect warning: ${String(err)}`,
-        );
+        this.logger.warn(`Kafka producer disconnect warning: ${String(err)}`);
       }
     }
   }

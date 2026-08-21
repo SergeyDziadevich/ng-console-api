@@ -10,3 +10,4 @@ export * from './mailer.contract';
 export * from './audit.contract';
 export * from './ai.contract';
 export * from './customers.contract';
+export * from './services.contract';

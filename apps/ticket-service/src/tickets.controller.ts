@@ -21,7 +21,8 @@ export class TicketsController {
     try {
       return await this.ticketsService.createTicket(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Create ticket failed';
+      const message =
+        err instanceof Error ? err.message : 'Create ticket failed';
       throw new RpcException({ statusCode: 400, message });
     }
   }
@@ -46,17 +47,21 @@ export class TicketsController {
     try {
       return await this.ticketsService.updateTicket(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Update ticket failed';
+      const message =
+        err instanceof Error ? err.message : 'Update ticket failed';
       throw new RpcException({ statusCode: 400, message });
     }
   }
 
   @MessagePattern(TICKETS_PATTERNS.DELETE)
-  async deleteTicket(@Payload() data: { id: string }): Promise<{ deleted: boolean }> {
+  async deleteTicket(
+    @Payload() data: { id: string },
+  ): Promise<{ deleted: boolean }> {
     try {
       return await this.ticketsService.deleteTicket(data.id);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Delete ticket failed';
+      const message =
+        err instanceof Error ? err.message : 'Delete ticket failed';
       throw new RpcException({ statusCode: 404, message });
     }
   }

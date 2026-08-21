@@ -116,10 +116,9 @@ export class TicketsGatewayController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteTicket(@Param('id') id: string): Promise<void> {
     await firstValueFrom(
-      this.ticketClient.send<void, { id: string }>(
-        TICKETS_PATTERNS.DELETE,
-        { id },
-      ),
+      this.ticketClient.send<void, { id: string }>(TICKETS_PATTERNS.DELETE, {
+        id,
+      }),
     );
   }
 
@@ -153,10 +152,10 @@ export class TicketsGatewayController {
       updatedBy: user.id,
     };
     return firstValueFrom(
-      this.ticketClient.send<{ updatedCount: number }, BulkUpdateTicketsCommand>(
-        TICKETS_PATTERNS.BULK_UPDATE,
-        payload,
-      ),
+      this.ticketClient.send<
+        { updatedCount: number },
+        BulkUpdateTicketsCommand
+      >(TICKETS_PATTERNS.BULK_UPDATE, payload),
     );
   }
 }

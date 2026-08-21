@@ -26,7 +26,11 @@ export class MetricsInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     if (context.getType<string>() === 'http') {
       const http = context.switchToHttp();
-      const req = http.getRequest<{ method?: string; route?: { path?: string }; url?: string }>();
+      const req = http.getRequest<{
+        method?: string;
+        route?: { path?: string };
+        url?: string;
+      }>();
       const res = http.getResponse<{ statusCode?: number }>();
       const start = Date.now();
 

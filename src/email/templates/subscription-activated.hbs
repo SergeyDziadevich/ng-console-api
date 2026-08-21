@@ -1,34 +1,71 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Your Subscription is Active</title>
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
-    .content { padding: 20px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 5px 5px; }
-    .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #6b7280; }
-    .button { display: inline-block; padding: 10px 20px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 5px; margin-top: 15px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h2>Welcome to your {{planName}} Plan!</h2>
-    </div>
-    <div class="content">
-      <p>Hello {{name}},</p>
-      <p>Thank you for subscribing! Your account has been successfully upgraded to the <strong>{{planName}}</strong> plan.</p>
-      <p>You now have full access to all the premium features included in your subscription.</p>
-      <p>To manage your subscription or view your billing history, you can access your billing portal at any time.</p>
-      <div style="text-align: center;">
-        <a href="{{manageLink}}" class="button">Manage Subscription</a>
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <title>Your Subscription is Active</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        background-color: #2563eb;
+        color: white;
+        padding: 20px;
+        text-align: center;
+        border-radius: 5px 5px 0 0;
+      }
+      .content {
+        padding: 20px;
+        background-color: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-top: none;
+        border-radius: 0 0 5px 5px;
+      }
+      .footer {
+        margin-top: 20px;
+        text-align: center;
+        font-size: 12px;
+        color: #6b7280;
+      }
+      .button {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #2563eb;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-top: 15px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class='container'>
+      <div class='header'>
+        <h2>Welcome to your {{planName}} Plan!</h2>
+      </div>
+      <div class='content'>
+        <p>Hello {{name}},</p>
+        <p>Thank you for subscribing! Your account has been successfully
+          upgraded to the
+          <strong>{{planName}}</strong>
+          plan.</p>
+        <p>You now have full access to all the premium features included in your
+          subscription.</p>
+        <p>To manage your subscription or view your billing history, you can
+          access your billing portal at any time.</p>
+        <div style='text-align: center;'>
+          <a href='{{manageLink}}' class='button'>Manage Subscription</a>
+        </div>
+      </div>
+      <div class='footer'>
+        <p>&copy; 2026 Cloud Console. All rights reserved.</p>
       </div>
     </div>
-    <div class="footer">
-      <p>&copy; 2026 Cloud Console. All rights reserved.</p>
-    </div>
-  </div>
-</body>
+  </body>
 </html>

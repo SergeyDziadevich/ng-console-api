@@ -40,7 +40,7 @@ export class IntegrationsService {
     try {
       const { tokens } = await this.oauth2Client.getToken(code);
 
-      const settingsUpdate: Record<string, any> = {
+      const settingsUpdate: Record<string, unknown> = {
         googleDriveSyncEnabled: true,
       };
 

@@ -3,14 +3,6 @@
   "compilerOptions": {
     "outDir": "./dist/out-tsc"
   },
-  "include": [
-    "apps/**/*",
-    "libs/**/*",
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.spec.ts"
-  ]
+  "include": ["apps/**/*", "libs/**/*", "src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts"]
 }

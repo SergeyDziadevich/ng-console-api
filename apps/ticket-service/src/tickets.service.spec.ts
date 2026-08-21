@@ -1,7 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { TicketsService } from './tickets.service';
-import { Comment, EpicTag, Ticket, TicketPriority, TicketStatus } from '@ng-console-api/database';
+import {
+  Comment,
+  EpicTag,
+  Ticket,
+  TicketPriority,
+  TicketStatus,
+} from '@ng-console-api/database';
 import { KafkaProducerService } from '@ng-console-api/common';
 import { KAFKA_TOPICS } from '@ng-console-api/contracts';
 

@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { CallHandler, ExecutionContext } from '@nestjs/common';

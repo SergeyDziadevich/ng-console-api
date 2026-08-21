@@ -21,7 +21,8 @@ export class UsersController {
     try {
       return await this.usersService.createUser(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'User creation failed';
+      const message =
+        err instanceof Error ? err.message : 'User creation failed';
       throw new RpcException({ statusCode: 400, message });
     }
   }
@@ -42,7 +43,9 @@ export class UsersController {
   }
 
   @MessagePattern(USER_PATTERNS.FIND_BY_EMAIL)
-  async findByEmail(@Payload() data: { email: string }): Promise<UserDto | null> {
+  async findByEmail(
+    @Payload() data: { email: string },
+  ): Promise<UserDto | null> {
     return this.usersService.findByEmail(data.email);
   }
 
@@ -57,7 +60,9 @@ export class UsersController {
   }
 
   @MessagePattern(USER_PATTERNS.DELETE)
-  async deleteUser(@Payload() data: { id: string }): Promise<{ deleted: boolean }> {
+  async deleteUser(
+    @Payload() data: { id: string },
+  ): Promise<{ deleted: boolean }> {
     try {
       return await this.usersService.deleteUser(data.id);
     } catch (err: unknown) {
@@ -67,7 +72,9 @@ export class UsersController {
   }
 
   @MessagePattern(USER_PATTERNS.GET_SETTINGS)
-  async getSettings(@Payload() data: { userId: string }): Promise<UserSettingsDto> {
+  async getSettings(
+    @Payload() data: { userId: string },
+  ): Promise<UserSettingsDto> {
     try {
       return await this.usersService.getSettings(data.userId);
     } catch (err: unknown) {
@@ -83,7 +90,8 @@ export class UsersController {
     try {
       return await this.usersService.updateSettings(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Update settings failed';
+      const message =
+        err instanceof Error ? err.message : 'Update settings failed';
       throw new RpcException({ statusCode: 400, message });
     }
   }

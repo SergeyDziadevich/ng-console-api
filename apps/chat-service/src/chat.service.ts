@@ -64,7 +64,7 @@ export class ChatService {
   async getRooms(userId: string): Promise<ChatRoomDto[]> {
     const members = await this.memberRepo.find({
       where: { userId },
-      relations: ['room'],
+      relations: { room: true },
     });
 
     const roomIds = members.map((m) => m.roomId);
@@ -74,7 +74,7 @@ export class ChatService {
 
     const rooms = await this.roomRepo.find({
       where: roomIds.map((id) => ({ id })),
-      relations: ['members', 'messages'],
+      relations: { members: true, messages: true },
     });
 
     return rooms.map((r) => this.mapToRoomDto(r, r.members, userId, false));

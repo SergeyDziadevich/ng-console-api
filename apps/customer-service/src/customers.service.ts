@@ -47,7 +47,7 @@ export class CustomersService {
 
   async findAll(): Promise<CustomerDto[]> {
     const customers = await this.customerRepo.find({
-      relations: ['subCustomers'],
+      relations: { subCustomers: true },
       order: { createdAt: 'DESC' },
     });
     return customers.map((c) => this.mapToDto(c));
@@ -56,7 +56,7 @@ export class CustomersService {
   async findById(id: string): Promise<CustomerDto> {
     const customer = await this.customerRepo.findOne({
       where: { id },
-      relations: ['subCustomers'],
+      relations: { subCustomers: true },
     });
     if (!customer) {
       throw new NotFoundException(`Customer ${id} not found`);

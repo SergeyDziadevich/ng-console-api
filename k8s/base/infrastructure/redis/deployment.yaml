@@ -21,7 +21,7 @@ spec:
       containers:
         - name: redis
           image: redis:7-alpine
-          command: ["redis-server", "--appendonly", "yes"]
+          command: ['redis-server', '--appendonly', 'yes']
           ports:
             - containerPort: 6379
               name: redis
@@ -39,6 +39,6 @@ spec:
             periodSeconds: 10
           readinessProbe:
             exec:
-              command: ["redis-cli", "ping"]
+              command: ['redis-cli', 'ping']
             initialDelaySeconds: 5
             periodSeconds: 5

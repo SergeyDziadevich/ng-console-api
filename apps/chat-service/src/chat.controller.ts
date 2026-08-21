@@ -56,7 +56,8 @@ export class ChatController {
     try {
       return await this.chatService.sendMessage(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Send message failed';
+      const message =
+        err instanceof Error ? err.message : 'Send message failed';
       throw new RpcException({ statusCode: 400, message });
     }
   }

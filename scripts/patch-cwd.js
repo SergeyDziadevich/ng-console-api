@@ -4,7 +4,7 @@ if (typeof process !== 'undefined') {
   try {
     process.cwd();
   } catch (e) {
-    process.cwd = function() {
+    process.cwd = function () {
       return process.env.PWD_OVERRIDE || process.env.INIT_CWD || defaultDir;
     };
   }

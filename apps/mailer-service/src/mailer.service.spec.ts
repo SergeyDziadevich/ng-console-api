@@ -45,7 +45,10 @@ describe('MailerService', () => {
 
   describe('sendWelcomeEmail', () => {
     it('should send welcome email with correct parameters', async () => {
-      const result = await service.sendWelcomeEmail('newuser@example.com', 'New User');
+      const result = await service.sendWelcomeEmail(
+        'newuser@example.com',
+        'New User',
+      );
       expect(result.success).toBe(true);
     });
   });

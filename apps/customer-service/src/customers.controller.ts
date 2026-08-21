@@ -17,7 +17,8 @@ export class CustomersController {
     try {
       return await this.customersService.create(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Create customer failed';
+      const message =
+        err instanceof Error ? err.message : 'Create customer failed';
       throw new RpcException({ statusCode: 400, message });
     }
   }
@@ -42,7 +43,8 @@ export class CustomersController {
     try {
       return await this.customersService.update(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Update customer failed';
+      const message =
+        err instanceof Error ? err.message : 'Update customer failed';
       throw new RpcException({ statusCode: 400, message });
     }
   }
@@ -52,7 +54,8 @@ export class CustomersController {
     try {
       return await this.customersService.delete(data.id);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Delete customer failed';
+      const message =
+        err instanceof Error ? err.message : 'Delete customer failed';
       throw new RpcException({ statusCode: 404, message });
     }
   }
